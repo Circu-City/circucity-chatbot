@@ -1,0 +1,710 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String           @id @default(cuid())
+  name             String?
+  email            String           @unique
+  passwordHash     String?
+  image            String?
+  role             String           @default("customer")
+  emailVerified    DateTime?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  backupCodes      String?
+  emailVerifiedAt  DateTime?
+  totpSecret       String?
+  twoFactorEnabled Boolean          @default(false)
+  adminActions     AdminActionLog[]
+  conversations    Conversation[]
+  forumPosts       ForumPost[]
+  forumReplies     ForumReply[]
+  organizations    Organization[]
+  partners         Partner[]
+  stores           Store[]
+  supportTickets   SupportTicket[]
+  teamMembers      TeamMember[]
+
+  @@index([email])
+  @@index([role])
+}
+
+model Organization {
+  id         String       @id @default(cuid())
+  userId     String
+  name       String
+  slug       String       @unique
+  plan       String       @default("free")
+  status     String       @default("active")
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  owner      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspaces Store[]
+  members    TeamMember[]
+
+  @@index([userId])
+  @@index([slug])
+}
+
+model Store {
+  id                    String          @id @default(cuid())
+  userId                String
+  name                  String
+  url                   String?
+  industry              String?
+  apiKey                String?         @unique
+  embedCode             String?
+  tone                  String?         @default("professional")
+  status                String          @default("active")
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
+  stripeCustomerId      String?
+  billingCountry        String?  @default("SE")
+  businessType          String?  @default("individual")
+  vatNumber             String?
+  vatValidated          Boolean  @default(false)
+  aboutBusiness         String?
+  businessName          String?
+  contactInfo           String?
+  crawlData             String?
+  crawlStatus           String?         @default("idle")
+  escalationRules       String?
+  greetingMessage       String?
+  lastCrawl             DateTime?
+  leadCaptureSettings   String?
+  operatingHours        String?
+  orgId                 String?
+  personality           String?         @default("professional")
+  salesRules            String?
+  suggestedPrompts      String?
+  websiteUrl            String?
+  cardBrand             String?
+  cardExpMonth          Int?
+  cardExpYear           Int?
+  cardLast4             String?
+  plan                  String?         @default("free")
+  stripePaymentMethodId String?
+  metadata              String?
+  ownershipVerified     Boolean         @default(false)
+  verifiedAt            DateTime?
+  apiKeys               ApiKey[]
+  channels              Channel[]
+  conversations         Conversation[]
+  emailChannel          EmailChannel?
+  embedSettings         EmbedSettings?
+  flows                 Flow[]
+  flowExecutions        FlowExecution[]
+  products              Product[]
+  organization          Organization?   @relation(fields: [orgId], references: [id])
+  user                  User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscriptions         Subscription[]
+  usageLogs             UsageLog[]
+  visitors              Visitor[]
+  widgetEvents          WidgetEvent[]
+  listingRecords        ListingRecord[]
+  entitlements          StoreProductEntitlement[]
+
+  @@index([userId])
+  @@index([orgId])
+  @@index([apiKey])
+}
+
+model StoreProductEntitlement {
+  id                   String   @id @default(cuid())
+  storeId              String
+  product              String
+  tier                 String   @default("free")
+  status               String   @default("active")
+  priceId              String?
+  stripeSubscriptionId String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  store                Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@unique([storeId, product])
+  @@index([storeId])
+}
+
+model TeamMember {
+  id           String       @id @default(cuid())
+  orgId        String
+  userId       String
+  role         String       @default("member")
+  createdAt    DateTime     @default(now())
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([orgId, userId])
+  @@index([orgId])
+  @@index([userId])
+}
+
+model EmbedSettings {
+  id               String  @id @default(cuid())
+  storeId          String  @unique
+  primaryColor     String  @default("#9EF01A")
+  position         String  @default("bottom-right")
+  welcomeMessage   String  @default("Hi! How can I help you today?")
+  botName          String  @default("AI Assistant")
+  showBranding     Boolean @default(true)
+  autoOpen         Boolean @default(false)
+  autoOpenDelay    Int     @default(5)
+  proactiveEnabled Boolean @default(true)
+  voiceEnabled     Boolean @default(true)
+  handoffEnabled   Boolean @default(true)
+  store            Store   @relation(fields: [storeId], references: [id], onDelete: Cascade)
+}
+
+model Subscription {
+  id               String    @id @default(cuid())
+  storeId          String
+  plan             String    @default("free")
+  status           String    @default("trialing")
+  currentPeriodEnd DateTime?
+  stripeId         String?   @unique
+  stripePriceId    String?
+  stripeStatus     String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  store            Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@index([storeId])
+  @@index([stripeId])
+  @@index([status])
+}
+
+model Product {
+  id          String    @id @default(cuid())
+  storeId     String
+  name        String
+  price       Float
+  image       String?
+  description String?
+  category    String?
+  stock       Int?
+  currency    String    @default("USD")
+  isActive    Boolean   @default(true)
+  lastSynced  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  slug        String?
+  url         String?
+  store       Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@index([storeId])
+  @@index([category])
+  @@index([name])
+}
+
+model Conversation {
+  id            String   @id @default(cuid())
+  storeId       String
+  userId        String?
+  sessionId     String   @unique
+  visitorId     String?
+  customerName  String?
+  customerEmail String?
+  messages      String   @default("[]")
+  sentiment     String?
+  escalated     Boolean  @default(false)
+  resolved      Boolean  @default(false)
+  pageUrl          String?
+  metadata         String?
+  rating           Int?
+  ratingComment    String?
+  ratedAt          DateTime?
+  handoffRequested Boolean    @default(false)
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+  store            Store      @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  user          User?    @relation(fields: [userId], references: [id])
+
+  @@index([storeId])
+  @@index([sessionId])
+  @@index([createdAt])
+  @@index([sentiment])
+  @@index([visitorId])
+  @@index([storeId, visitorId])
+}
+
+model ApiKey {
+  id          String    @id @default(cuid())
+  storeId     String
+  key         String    @unique
+  name        String
+  permissions String    @default("read")
+  expiresAt   DateTime?
+  lastUsedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  store       Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@index([storeId])
+  @@index([key])
+}
+
+model UsageLog {
+  id            String   @id @default(cuid())
+  storeId       String
+  messagesCount Int      @default(0)
+  avgLatencyMs  Float    @default(0)
+  llmTokens     Int      @default(0)
+  errorCount    Int      @default(0)
+  date          DateTime @default(now())
+  store         Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@unique([storeId, date])
+  @@index([storeId])
+  @@index([date])
+}
+
+model AdminActionLog {
+  id        String   @id @default(cuid())
+  adminId   String
+  action    String
+  target    String?
+  targetId  String?
+  details   String?
+  createdAt DateTime @default(now())
+  admin     User     @relation(fields: [adminId], references: [id], onDelete: Cascade)
+
+  @@index([adminId])
+  @@index([createdAt])
+  @@index([action])
+}
+
+model StoreInvite {
+  id        String   @id @default(cuid())
+  storeId   String
+  email     String
+  role      String   @default("member")
+  token     String   @unique
+  accepted  Boolean  @default(false)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([storeId])
+  @@index([token])
+}
+
+model ForumPost {
+  id          String       @id @default(cuid())
+  title       String
+  content     String
+  category    String       @default("General")
+  authorName  String
+  authorEmail String?
+  authorId    String?
+  pinned      Boolean      @default(false)
+  replyCount  Int          @default(0)
+  viewCount   Int          @default(0)
+  likeCount   Int          @default(0)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  author      User?        @relation(fields: [authorId], references: [id])
+  replies     ForumReply[]
+
+  @@index([category])
+  @@index([createdAt])
+  @@index([pinned])
+}
+
+model ForumReply {
+  id          String    @id @default(cuid())
+  postId      String
+  content     String
+  authorName  String
+  authorEmail String?
+  authorId    String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  author      User?     @relation(fields: [authorId], references: [id])
+  post        ForumPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([postId])
+}
+
+model SupportTicket {
+  id         String   @id @default(cuid())
+  userId     String?
+  name       String
+  email      String
+  category   String
+  priority   String   @default("medium")
+  subject    String
+  message    String
+  status     String   @default("open")
+  adminReply String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  user       User?    @relation(fields: [userId], references: [id])
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([category])
+}
+
+model PlatformSettings {
+  id                       String   @id @default("singleton")
+  platformName             String   @default("CircuCity AI")
+  supportEmail             String   @default("hello@circucity.se")
+  maintenanceMode          Boolean  @default(false)
+  requireEmailVerification Boolean  @default(false)
+  maxStoresPerUser         Int      @default(5)
+  updatedAt                DateTime @updatedAt
+  metaAppId                String?
+  metaAppSecret            String?
+  metaWebhookToken         String?
+  platformCredentials      String?  @default("{}")
+}
+
+model StockAlert {
+  id                   String    @id @default(cuid())
+  storeId              String
+  email                String
+  productId            String
+  productName          String
+  marketplaceProductId String?
+  notified             Boolean   @default(false)
+  notifiedAt           DateTime?
+  createdAt            DateTime  @default(now())
+
+  @@unique([storeId, email, productId])
+  @@index([storeId])
+  @@index([productId])
+  @@index([notified])
+}
+
+model Channel {
+  id           String    @id @default(cuid())
+  storeId      String
+  type         String
+  name         String
+  status       String    @default("disconnected")
+  credentials  String?
+  settings     String?
+  lastSyncAt   DateTime?
+  errorMessage String?
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  store        Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@unique([storeId, type])
+  @@index([storeId])
+}
+
+model Flow {
+  id             String          @id @default(cuid())
+  storeId        String
+  name           String
+  description    String?
+  trigger        String
+  triggerConfig  String?
+  steps          String          @default("[]")
+  status         String          @default("draft")
+  executionCount Int             @default(0)
+  successRate    Float?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  store          Store           @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  executions     FlowExecution[]
+
+  @@index([storeId])
+  @@index([status])
+}
+
+model Visitor {
+  id         String   @id @default(cuid())
+  storeId    String
+  sessionId  String
+  name       String?
+  email      String?
+  pageUrl    String?
+  pageTitle  String?
+  referrer   String?
+  userAgent  String?
+  ipAddress  String?
+  city       String?
+  country    String?
+  isOnline   Boolean  @default(true)
+  lastSeenAt DateTime @default(now())
+  metadata   String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  store      Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@index([storeId])
+  @@index([sessionId])
+  @@index([isOnline])
+  @@index([lastSeenAt])
+}
+
+model FlowExecution {
+  id          String    @id @default(cuid())
+  flowId      String
+  storeId     String
+  sessionId   String?
+  stepIndex   Int       @default(0)
+  status      String    @default("running")
+  data        String?
+  startedAt   DateTime  @default(now())
+  completedAt DateTime?
+  error       String?
+  flow        Flow      @relation(fields: [flowId], references: [id], onDelete: Cascade)
+  store       Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@index([flowId])
+  @@index([storeId])
+  @@index([status])
+}
+
+model EmailChannel {
+  id         String    @id @default(cuid())
+  storeId    String    @unique
+  email      String
+  smtpHost   String
+  smtpPort   Int       @default(587)
+  smtpUser   String?
+  smtpPass   String?
+  imapHost   String
+  imapPort   Int       @default(993)
+  imapUser   String?
+  imapPass   String?
+  useSSL     Boolean   @default(true)
+  verified   Boolean   @default(false)
+  lastSyncAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  store      Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
+}
+
+model CartItem {
+  id        String   @id @default(cuid())
+  storeId   String
+  sessionId String
+  productId String
+  name      String
+  price     Float
+  currency  String   @default("SEK")
+  image     String?
+  url       String?
+  weight    Float?
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([sessionId, productId])
+  @@index([storeId])
+  @@index([sessionId])
+  @@index([createdAt])
+}
+
+model Partner {
+  id                String              @id @default(cuid())
+  storeId           String?
+  userId            String?
+  type              String              @default("affiliate")
+  status            String              @default("pending")
+  referralCode      String              @unique
+  commissionRate    Float               @default(10.0)
+  paymentEmail      String?
+  paymentMethod     String?
+  taxInfo           String?
+  totalEarned       Float               @default(0)
+  totalPaid         Float               @default(0)
+  referralCount     Int                 @default(0)
+  clickCount        Int                 @default(0)
+  conversionRate    Float               @default(0)
+  website           String?
+  bio               String?
+  promoMaterials    String?
+  approvedAt        DateTime?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  country           String?
+  email             String?
+  emailVerified     Boolean             @default(false)
+  firstName         String?
+  lastName          String?
+  phone             String?
+  verificationToken String?             @unique
+  user              User?               @relation(fields: [userId], references: [id])
+  commissions       PartnerCommission[]
+  payouts           PartnerPayout[]
+  referrals         PartnerReferral[]
+
+  @@index([storeId])
+  @@index([userId])
+  @@index([referralCode])
+  @@index([status])
+  @@index([type])
+  @@index([email])
+  @@index([verificationToken])
+}
+
+model PartnerReferral {
+  id                String              @id @default(cuid())
+  partnerId         String
+  code              String
+  clickedAt         DateTime?
+  convertedAt       DateTime?
+  referredEmail     String?
+  referredName      String?
+  source            String?
+  status            String              @default("clicked")
+  commission        Float               @default(0)
+  createdAt         DateTime            @default(now())
+  PartnerCommission PartnerCommission[]
+  partner           Partner             @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+
+  @@index([partnerId])
+  @@index([code])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model PartnerCommission {
+  id          String           @id @default(cuid())
+  partnerId   String
+  referralId  String?
+  amount      Float
+  currency    String           @default("USD")
+  status      String           @default("pending")
+  description String?
+  createdAt   DateTime         @default(now())
+  paidAt      DateTime?
+  partner     Partner          @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  referral    PartnerReferral? @relation(fields: [referralId], references: [id])
+
+  @@index([partnerId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model PartnerPayout {
+  id            String    @id @default(cuid())
+  partnerId     String
+  amount        Float
+  currency      String    @default("USD")
+  status        String    @default("pending")
+  paymentMethod String?
+  notes         String?
+  requestedAt   DateTime  @default(now())
+  completedAt   DateTime?
+  partner       Partner   @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+}
+
+model PartnerConfig {
+  id              String   @id @default("singleton")
+  defaultRate     Float    @default(10.0)
+  agencyRate      Float    @default(20.0)
+  ambassadorRate  Float    @default(15.0)
+  affiliateRate   Float    @default(10.0)
+  minPayout       Float    @default(50.0)
+  cookieDays      Int      @default(30)
+  autoApprove     Boolean  @default(false)
+  allowAgency     Boolean  @default(true)
+  allowAffiliate  Boolean  @default(true)
+  allowAmbassador Boolean  @default(true)
+  termsUrl        String?
+  payoutMethods   String   @default("[\"paypal\",\"bank_transfer\",\"stripe\"]")
+  updatedAt       DateTime @updatedAt
+}
+
+model JobPosting {
+  id             String          @id @default(cuid())
+  title          String
+  department     String
+  location       String
+  type           String          @default("full-time")
+  description    String
+  requirements   String?
+  expectations   String?
+  salaryRange    String?
+  status         String          @default("open")
+  vettingRules   String?
+  screeningQuestions String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  applications   JobApplication[]
+  @@index([status])
+  @@index([department])
+}
+
+model JobApplication {
+  id             String       @id @default(cuid())
+  jobId          String
+  firstName      String
+  lastName       String
+  email          String
+  phone          String?
+  resumeUrl      String?
+  coverLetter    String?
+  answers        String?
+  score          Int?
+  status         String       @default("pending")
+  adminNotes     String?
+  reviewedAt     DateTime?
+  reviewedBy     String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  job            JobPosting   @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  @@index([jobId])
+  @@index([status])
+  @@index([email])
+}
+
+model DocumentChunk {
+  id         String   @id @default(cuid())
+  storeId    String
+  source     String
+  content    String
+  contentTsv Unsupported("tsvector")?
+  embedding  Unsupported("vector(1536)")?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  @@index([storeId])
+}
+
+model WidgetEvent {
+  id        String   @id @default(cuid())
+  storeId   String
+  sessionId String?
+  event     String
+  data      String?
+  createdAt DateTime @default(now())
+
+  store Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@index([storeId, createdAt])
+  @@index([event])
+  @@index([createdAt])
+}
+
+model ListingRecord {
+  id          String    @id @default(cuid())
+  storeId     String
+  userId      String
+  platform    String
+  status      String    @default("created")
+  remoteId    String?
+  remoteUrl   String?
+  title       String
+  listingJson String
+  error       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  store       Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@index([storeId, createdAt])
+  @@index([userId, createdAt])
+  @@index([platform])
+}

@@ -1,0 +1,16 @@
+node_modules/
+.next/
+*.env
+.env*
+!*.example
+*.bak*
+kokoro-env/
+tts-env/
+models/
+logs/
+*.tsbuildinfo
+*.db
+*.db-journal
+public/demo.mp4
+public/videos/
+.DS_Store
