@@ -4,13 +4,13 @@ let _openai: OpenAI | null = null;
 
 function getClient(): OpenAI | null {
   if (_openai) return _openai;
-  const apiKey = process.env.OPENROUTER_API_KEY || process.env.OPENAI_API_KEY;
+  const apiKey = process.env.EMBEDDING_API_KEY || process.env.OPENROUTER_API_KEY || process.env.OPENAI_API_KEY;
   if (!apiKey) {
     console.warn("No API key available for embeddings");
     return null;
   }
   _openai = new OpenAI({
-    baseURL: process.env.OPENROUTER_BASE_URL || "https://openrouter.ai/api/v1",
+    baseURL: process.env.EMBEDDING_BASE_URL || process.env.OPENROUTER_BASE_URL || "https://openrouter.ai/api/v1",
     apiKey,
   });
   return _openai;
@@ -18,6 +18,18 @@ function getClient(): OpenAI | null {
 
 const EMBEDDING_MODEL = process.env.EMBEDDING_MODEL || "text-embedding-3-small";
 const EMBEDDING_DIMS = parseInt(process.env.EMBEDDING_DIMS || "1536", 10);
+
+// Providers differ in whether they accept the `dimensions` parameter:
+// OpenAI/OpenRouter pass it through, but Groq rejects it with
+// "property 'dimensions' is unsupported". Detect once per process.
+let _dimsSupported: boolean | null = null;
+
+function supportsDimensions(): boolean {
+  if (_dimsSupported !== null) return _dimsSupported;
+  const base = (process.env.EMBEDDING_BASE_URL || process.env.OPENROUTER_BASE_URL || "").toLowerCase();
+  _dimsSupported = !base.includes("groq");
+  return _dimsSupported;
+}
 
 let _embeddingsAvailable: boolean | null = null;
 
@@ -37,7 +49,7 @@ export async function embeddingsAvailable(): Promise<boolean> {
     const resp = await client.embeddings.create({
       model: EMBEDDING_MODEL,
       input: "probe",
-      dimensions: EMBEDDING_DIMS,
+      ...(supportsDimensions() ? { dimensions: EMBEDDING_DIMS } : {}),
     });
     _embeddingsAvailable = !!(resp.data && resp.data[0] && resp.data[0].embedding && resp.data[0].embedding.length > 0);
   } catch (e: any) {
@@ -55,7 +67,7 @@ export async function generateEmbedding(text: string): Promise<number[]> {
     const resp = await client.embeddings.create({
       model: EMBEDDING_MODEL,
       input: text,
-      dimensions: EMBEDDING_DIMS,
+      ...(supportsDimensions() ? { dimensions: EMBEDDING_DIMS } : {}),
     });
     return resp.data[0].embedding;
   } catch (e) {
@@ -72,7 +84,7 @@ export async function generateEmbeddings(texts: string[]): Promise<number[][]> {
     const resp = await client.embeddings.create({
       model: EMBEDDING_MODEL,
       input: texts,
-      dimensions: EMBEDDING_DIMS,
+      ...(supportsDimensions() ? { dimensions: EMBEDDING_DIMS } : {}),
     });
     return resp.data.map(d => d.embedding);
   } catch (e) {

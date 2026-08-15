@@ -32,6 +32,7 @@ import {
 } from "@/lib/conversation-context";
 import { processChatActions, type ChatAction } from "@/lib/chat-actions";
 import { runAgent, stripPseudoFunctionCalls } from "@/lib/agent-engine";
+import { detectLanguage, languageInstruction, languageName } from "@/lib/language";
 import {
   parseSessionMetadata,
   serializeSessionMetadata,
@@ -61,6 +62,84 @@ const geminiClient = process.env.GEMINI_API_KEY
   : null;
 
 const clientForModel = (model: string) => (geminiClient && model === GEMINI_MODEL_ENV ? geminiClient : replyClient);
+
+// Localized fallback strings used when the pipeline short-circuits before the
+// LLM gets a chance to translate (direct product matches, zero-match lists,
+// free-shipping notes). Keyed by detectLanguage() codes.
+const LOCALIZED_FALLBACKS: Record<string, Record<string, string>> = {
+  en: {
+    foundOne: "I found a product that matches your search — take a look below.",
+    foundMany: "I found {count} products that match your search — here are the best options.",
+    noExactMatch: "We couldn't find an exact match, but here's what's available: {topCats}. Would you like me to compare options, check policies, or narrow this down to your budget and use case?",
+    freeShipping: "Orders over 500 SEK qualify for free shipping.",
+  },
+  sv: {
+    foundOne: "Jag hittade en produkt som matchar din sökning — ta en titt nedan.",
+    foundMany: "Jag hittade {count} produkter som matchar din sökning — här är de bästa alternativen.",
+    noExactMatch: "Vi hittade ingen exakt matchning, men här är vad som finns: {topCats}. Vill du att jag jämför alternativen, kollar villkor eller begränsar sökningen utifrån din budget och ditt användningsområde?",
+    freeShipping: "Beställningar över 500 SEK berättigar till fri frakt.",
+  },
+  de: {
+    foundOne: "Ich habe ein Produkt gefunden, das zu Ihrer Suche passt — schauen Sie sich das unten an.",
+    foundMany: "Ich habe {count} Produkte gefunden, die zu Ihrer Suche passen — hier sind die besten Optionen.",
+    noExactMatch: "Wir konnten keinen exakten Treffer finden, aber das ist verfügbar: {topCats}. Soll ich Optionen vergleichen, Richtlinien prüfen oder die Suche auf Ihr Budget und Ihren Verwendungszweck eingrenzen?",
+    freeShipping: "Bestellungen über 500 SEK sind versandkostenfrei.",
+  },
+  fr: {
+    foundOne: "J'ai trouvé un produit correspondant à votre recherche — jetez un œil ci-dessous.",
+    foundMany: "J'ai trouvé {count} produits correspondant à votre recherche — voici les meilleures options.",
+    noExactMatch: "Nous n'avons pas trouvé de correspondance exacte, mais voici ce qui est disponible : {topCats}. Voulez-vous que je compare les options, vérifie les conditions ou affine la recherche selon votre budget et votre besoin ?",
+    freeShipping: "Les commandes de plus de 500 SEK bénéficient de la livraison gratuite.",
+  },
+  es: {
+    foundOne: "Encontré un producto que coincide con tu búsqueda — míralo a continuación.",
+    foundMany: "Encontré {count} productos que coinciden con tu búsqueda — aquí están las mejores opciones.",
+    noExactMatch: "No encontramos una coincidencia exacta, pero esto es lo que hay disponible: {topCats}. ¿Quieres que compare opciones, revise políticas o acote la búsqueda según tu presupuesto y tu caso de uso?",
+    freeShipping: "Los pedidos superiores a 500 SEK tienen envío gratuito.",
+  },
+  nl: {
+    foundOne: "Ik heb een product gevonden dat bij je zoekopdracht past — bekijk het hieronder.",
+    foundMany: "Ik heb {count} producten gevonden die bij je zoekopdracht passen — hier zijn de beste opties.",
+    noExactMatch: "We konden geen exacte match vinden, maar dit is er beschikbaar: {topCats}. Wil je dat ik opties vergelijk, voorwaarden controleer of de zoekopdracht verfijn op basis van je budget en gebruikssituatie?",
+    freeShipping: "Bestellingen boven 500 SEK komen in aanmerking voor gratis verzending.",
+  },
+  it: {
+    foundOne: "Ho trovato un prodotto che corrisponde alla tua ricerca — dai un'occhiata qui sotto.",
+    foundMany: "Ho trovato {count} prodotti che corrispondono alla tua ricerca — ecco le migliori opzioni.",
+    noExactMatch: "Non abbiamo trovato una corrispondenza esatta, ma ecco cosa è disponibile: {topCats}. Vuoi che confronti le opzioni, verifichi le policy o restringa la ricerca in base al tuo budget e alle tue esigenze?",
+    freeShipping: "Gli ordini superiori a 500 SEK hanno diritto alla spedizione gratuita.",
+  },
+  pt: {
+    foundOne: "Encontrei um produto que corresponde à sua pesquisa — veja abaixo.",
+    foundMany: "Encontrei {count} produtos que correspondem à sua pesquisa — aqui estão as melhores opções.",
+    noExactMatch: "Não encontramos uma correspondência exata, mas aqui está o que está disponível: {topCats}. Quer que eu compare opções, verifique as políticas ou refine a pesquisa com base no seu orçamento e na sua necessidade?",
+    freeShipping: "Pedidos acima de 500 SEK têm frete grátis.",
+  },
+  da: {
+    foundOne: "Jeg fandt et produkt, der matcher din søgning — se det herunder.",
+    foundMany: "Jeg fandt {count} produkter, der matcher din søgning — her er de bedste muligheder.",
+    noExactMatch: "Vi kunne ikke finde et præcist match, men her er hvad der er tilgængeligt: {topCats}. Vil du have, at jeg sammenligner muligheder, tjekker politikker eller indsnævrer søgningen til dit budget og dit behov?",
+    freeShipping: "Ordrer over 500 SEK er berettiget til gratis forsendelse.",
+  },
+  no: {
+    foundOne: "Jeg fant et produkt som matcher søket ditt — se det nedenfor.",
+    foundMany: "Jeg fant {count} produkter som matcher søket ditt — her er de beste alternativene.",
+    noExactMatch: "Vi fant ingen eksakt match, men her er hva som er tilgjengelig: {topCats}. Vil du at jeg sammenligner alternativer, sjekker vilkår eller begrenser søket til budsjettet ditt og bruksområdet?",
+    freeShipping: "Ordrer over 500 SEK kvalifiserer for gratis frakt.",
+  },
+  fi: {
+    foundOne: "Löysin tuotteen, joka vastaa hakua — katso alta.",
+    foundMany: "Löysin {count} tuotetta, jotka vastaavat hakuasi — tässä parhaat vaihtoehdot.",
+    noExactMatch: "Emme löytäneet tarkkaa osumaa, mutta tässä on mitä on saatavilla: {topCats}. Haluatko, että vertailen vaihtoehtoja, tarkistan ehdot tai rajaan haun budjettisi ja käyttötarkoituksesi mukaan?",
+    freeShipping: "Yli 500 SEK:n tilaukset oikeuttavat ilmaiseen toimitukseen.",
+  },
+  pl: {
+    foundOne: "Znalazłem produkt pasujący do Twojego wyszukiwania — zobacz poniżej.",
+    foundMany: "Znalazłem {count} produktów pasujących do Twojego wyszukiwania — oto najlepsze opcje.",
+    noExactMatch: "Nie znaleźliśmy dokładnego dopasowania, ale oto co jest dostępne: {topCats}. Czy chcesz, abym porównał opcje, sprawdził zasady lub zawęził wyszukiwanie do Twojego budżetu i potrzeb?",
+    freeShipping: "Zamówienia powyżej 500 SEK kwalifikują się do darmowej dostawy.",
+  },
+};
 
 // General "what does this store sell" questions — answer with the catalog overview,
 // never the "couldn't find an exact match" replacement.
@@ -142,6 +221,11 @@ export async function POST(request: NextRequest) {
     if (typeof message === "string") {
       message = message.slice(0, 4000);
     }
+
+    // Detect the customer's language once per request (used for reply language
+    // enforcement, localized fallback strings, and TTS voice selection).
+    const userLang = detectLanguage(typeof message === "string" ? message : "");
+    const userLangRule = languageInstruction(userLang);
 
     // Attachment handling
     const MAX_ATTACHMENT_SIZE = 5 * 1024 * 1024;
@@ -528,7 +612,14 @@ ${allProductNames}
 ## Website Knowledge (retrieved from the merchant's own crawled website — your ONLY source for factual answers)
 ${knowledgeContext || "No matching website knowledge found for this query."}`;
 
-        const fullPrompt = systemPrompt + dataSection;
+        const langSection = `
+## LANGUAGE REQUIREMENT
+${userLangRule}
+- The customer's message may be in any European language. Always mirror it.
+- Tool calls and internal reasoning may stay in English; the reply text you send back to the customer must be in the customer's language.
+- If you are not sure of the language, use the customer's own words as a guide.`;
+
+        const fullPrompt = systemPrompt + langSection + dataSection;
 
         // Shared product-card formatting (name/price+currency/url/image/description),
         // used for both the direct-search pipeline's matches and the agent's own
@@ -565,8 +656,8 @@ ${knowledgeContext || "No matching website knowledge found for this query."}`;
           const matchCount = matchedProducts.length;
           assistantReply =
             matchCount === 1
-              ? "I found a product that matches your search — take a look below."
-              : `I found ${matchCount} products that match your search — here are the best options.`;
+              ? (LOCALIZED_FALLBACKS[userLang]?.foundOne || "I found a product that matches your search — take a look below.")
+              : (LOCALIZED_FALLBACKS[userLang]?.foundMany || "I found {count} products that match your search — here are the best options.").replace("{count}", String(matchCount));
           responseProducts = formatProductsForCards(matchedProducts);
           skipLlm = true;
         }
@@ -714,8 +805,14 @@ ${knowledgeContext || "No matching website knowledge found for this query."}`;
               .join("; ");
             if (topCats) {
               out =
-                `We couldn't find an exact match, but here's what's available: ${topCats}. ` +
-                `Would you like me to compare options, check policies, or narrow this down to your budget and use case?`;
+                (LOCALIZED_FALLBACKS[userLang]?.noExactMatch ||
+                  `We couldn't find an exact match, but here's what's available: ${topCats}. ` +
+                  `Would you like me to compare options, check policies, or narrow this down to your budget and use case?`);
+              if (LOCALIZED_FALLBACKS[userLang]?.noExactMatch) {
+                out = (LOCALIZED_FALLBACKS[userLang].noExactMatch as string)
+                  .replace("{topCats}", topCats)
+                  .replace("{count}", String(allProducts.length));
+              }
               // Give the suggested items real cards too, not just names in the text —
               // otherwise the user has nothing clickable to act on.
               const suggestionProducts = topEntries.flatMap(([, products]) => products.slice(0, 2));
@@ -730,7 +827,7 @@ ${knowledgeContext || "No matching website knowledge found for this query."}`;
             matchedProducts.length > 0 &&
             !/500|free shipping/i.test(out)
           ) {
-            out += " Orders over 500 SEK qualify for free shipping.";
+            out += " " + (LOCALIZED_FALLBACKS[userLang]?.freeShipping || "Orders over 500 SEK qualify for free shipping.");
           }
           return out;
         };

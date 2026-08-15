@@ -27,6 +27,413 @@
   var CSAT_KEY = "cc_csat_done_";
   var AUTO_OPEN_KEY = "cc_auto_opened";
 
+  // --- i18n: pick the widget language from the visitor's browser ---
+  var CC_LANG = (function () {
+    var raw = (navigator.language || navigator.userLanguage || "en").toLowerCase();
+    if (raw.indexOf("sv") === 0) return "sv";
+    if (raw.indexOf("de") === 0) return "de";
+    if (raw.indexOf("fr") === 0) return "fr";
+    if (raw.indexOf("es") === 0) return "es";
+    if (raw.indexOf("nl") === 0) return "nl";
+    if (raw.indexOf("it") === 0) return "it";
+    if (raw.indexOf("pt") === 0) return "pt";
+    if (raw.indexOf("da") === 0) return "da";
+    if (raw.indexOf("no") === 0 || raw.indexOf("nb") === 0) return "no";
+    if (raw.indexOf("fi") === 0) return "fi";
+    if (raw.indexOf("pl") === 0) return "pl";
+    return "en";
+  })();
+
+  var CC_STRINGS = {
+    en: {
+      leadTitle: "Before we start — how can we reach you?",
+      typeMsg: "Type your message...",
+      attachMsg: "Add a message or send the file...",
+      askQuestion: "Ask a question...",
+      welcome: "Hi there!",
+      askAnything: "Ask me anything about our store, products, or orders.",
+      welcomeBack: "Welcome back! Looking for something specific today?",
+      findProduct: "Can I help you find the perfect product today?",
+      helpNow: "Hi! Need help finding something?",
+      specificHelp: "Looking for something specific? I'm here to help.",
+      dontLeave: "Don't leave yet! Can I help you find something?",
+      questions: "Have questions? I'd be happy to answer them.",
+      yourName: "Your name",
+      emailOpt: "Email (optional)",
+      email: "Email",
+      phoneOpt: "Phone (optional)",
+      needHelp: "What do you need help with?",
+      skip: "Add a name or email, or skip.",
+      send: "Send message",
+      search: "Search",
+      clearSearch: "Clear search",
+      editSearch: "Edit search",
+      newChat: "New chat",
+      newConversation: "New conversation",
+      noPast: "No past conversations yet.",
+      chatWith: "Chat with ",
+      openChat: "Open chat with ",
+      closeChat: "Close chat",
+      minimize: "Minimize chat",
+      talkHuman: "Talk to a human",
+      handoff: "Need a human? Tap the person icon above.",
+      cancel: "Cancel",
+      retry: "Retry",
+      dismiss: "Dismiss",
+      poweredBy: "Powered by",
+      attachFile: "Attach file",
+      removeFile: "Remove file",
+      readAloud: "Read aloud",
+      toggleSound: "Toggle sound",
+      voiceInput: "Voice input",
+      emoji: "Emoji",
+      browseStore: "Browse store",
+      basedOn: "Based on:",
+      lookingFor: "Looking for:",
+      addToCart: "Add to cart",
+      addedToCart: "Added to cart: ",
+      restock: "Restock alert saved for ",
+      enterTerm: "Enter a search term",
+      helpEmpty: "No help articles yet. Ask a question above.",
+      busy: "Busy, retrying...",
+      retrying: "Retrying...",
+      connErr: "Connection error. Please try again.",
+      connLost: "Connection lost. Please try again.",
+      tooFast: "Chat is busy right now. Please try again shortly.",
+      unavailable: "Chat temporarily unavailable. Please try again shortly.",
+      badRequest: "Sorry, I couldn't process your message. Please try again.",
+      genericErr: "Sorry, something went wrong. Please try again.",
+      feedbackThanks: "Thanks for your feedback!",
+      helpful: "Helpful",
+      notHelpful: "Not helpful",
+      quickShip: "How does shipping work?",
+      quickReturn: "What's the return policy?",
+      quickSell: "What do you sell?",
+      quickHours: "What are your hours?",
+      quickDiscount: "Do you have any discounts or offers?",
+      quickGift: "I need a gift idea",
+      quickSupport: "How do I get support?",
+      quickPay: "How do I pay?",
+      quickPopular: "What are your most popular items?",
+      quickCheckout: "Can you help with checkout?",
+      quickLocation: "Where are you located?",
+      quickIntl: "Do you ship internationally?",
+      quickSizes: "What sizes are available?",
+      quickSuggestion: "Need a recommendation? Just ask!",
+    },
+    sv: {
+      leadTitle: "Innan vi börjar — hur kan vi nå dig?",
+      typeMsg: "Skriv ditt meddelande...",
+      attachMsg: "Skriv ett meddelande eller skicka filen...",
+      askQuestion: "Ställ en fråga...",
+      welcome: "Hej där!",
+      askAnything: "Fråga mig vad som helst om vår butik, produkter eller beställningar.",
+      welcomeBack: "Välkommen tillbaka! Letar du efter något specifikt idag?",
+      findProduct: "Kan jag hjälpa dig hitta den perfekta produkten idag?",
+      helpNow: "Hej! Behöver du hjälp att hitta något?",
+      specificHelp: "Letar du efter något specifikt? Jag finns här för att hjälpa.",
+      dontLeave: "Gå inte ännu! Kan jag hjälpa dig hitta något?",
+      questions: "Har du frågor? Jag svarar gärna på dem.",
+      yourName: "Ditt namn",
+      emailOpt: "E-post (valfritt)",
+      email: "E-post",
+      phoneOpt: "Telefon (valfritt)",
+      needHelp: "Vad behöver du hjälp med?",
+      skip: "Lägg till namn eller e-post, eller hoppa över.",
+      send: "Skicka meddelande",
+      search: "Sök",
+      clearSearch: "Rensa sökning",
+      editSearch: "Ändra sökning",
+      newChat: "Ny chatt",
+      newConversation: "Ny konversation",
+      noPast: "Inga tidigare konversationer ännu.",
+      chatWith: "Chatta med ",
+      openChat: "Öppna chatt med ",
+      closeChat: "Stäng chatt",
+      minimize: "Minimera chatt",
+      talkHuman: "Prata med en människa",
+      handoff: "Behöver du hjälp från en människa? Tryck på personikonen ovan.",
+      cancel: "Avbryt",
+      retry: "Försök igen",
+      dismiss: "Stäng",
+      poweredBy: "Drivs av",
+      attachFile: "Bifoga fil",
+      removeFile: "Ta bort fil",
+      readAloud: "Läs upp",
+      toggleSound: "Ljud på/av",
+      voiceInput: "Röstinmatning",
+      emoji: "Emoji",
+      browseStore: "Bläddra i butiken",
+      basedOn: "Baserat på:",
+      lookingFor: "Letar efter:",
+      addToCart: "Lägg i varukorg",
+      addedToCart: "Tillagd i varukorgen: ",
+      restock: "Påminnelse om återlager sparas för ",
+      enterTerm: "Ange en sökterm",
+      helpEmpty: "Inga hjälpartiklar ännu. Ställ en fråga ovan.",
+      busy: "Upptagen, försöker igen...",
+      retrying: "Försöker igen...",
+      connErr: "Anslutningsfel. Försök igen.",
+      connLost: "Anslutningen bröts. Försök igen.",
+      tooFast: "Chatten är upptagen just nu. Försök igen om en stund.",
+      unavailable: "Chatten är tillfälligt otillgänglig. Försök igen om en stund.",
+      badRequest: "Tyvärr kunde jag inte behandla ditt meddelande. Försök igen.",
+      genericErr: "Tyvärr, något gick fel. Försök igen.",
+      feedbackThanks: "Tack för din feedback!",
+      helpful: "Hjälpsam",
+      notHelpful: "Inte hjälpsam",
+      quickShip: "Hur fungerar leveransen?",
+      quickReturn: "Vad är returpolicyn?",
+      quickSell: "Vad säljer ni?",
+      quickHours: "Vilka är era öppettider?",
+      quickDiscount: "Har ni några rabatter eller erbjudanden?",
+      quickGift: "Jag behöver en presentidé",
+      quickSupport: "Hur får jag support?",
+      quickPay: "Hur betalar jag?",
+      quickPopular: "Vilka är era mest populära produkter?",
+      quickCheckout: "Kan du hjälpa mig med kassan?",
+      quickLocation: "Var ligger ni?",
+      quickIntl: "Skickar ni till andra länder?",
+      quickSizes: "Vilka storlekar finns?",
+      quickSuggestion: "Behöver du en rekommendation? Fråga bara!",
+    },
+    de: {
+      leadTitle: "Bevor wir beginnen — wie können wir Sie erreichen?",
+      typeMsg: "Nachricht eingeben...",
+      attachMsg: "Nachricht eingeben oder Datei senden...",
+      askQuestion: "Frage stellen...",
+      welcome: "Hallo!",
+      askAnything: "Fragen Sie mich alles zu unserem Shop, unseren Produkten oder Bestellungen.",
+      welcomeBack: "Willkommen zurück! Suchen Sie heute etwas Bestimmtes?",
+      findProduct: "Kann ich Ihnen heute helfen, das perfekte Produkt zu finden?",
+      helpNow: "Hallo! Suchen Sie etwas?",
+      specificHelp: "Auf der Suche nach etwas Bestimmtem? Ich bin hier, um zu helfen.",
+      dontLeave: "Noch nicht gehen! Kann ich Ihnen helfen, etwas zu finden?",
+      questions: "Haben Sie Fragen? Ich beantworte sie gerne.",
+      yourName: "Ihr Name",
+      emailOpt: "E-Mail (optional)",
+      email: "E-Mail",
+      phoneOpt: "Telefon (optional)",
+      needHelp: "Wobei brauchen Sie Hilfe?",
+      skip: "Name oder E-Mail hinzufügen oder überspringen.",
+      send: "Nachricht senden",
+      search: "Suchen",
+      clearSearch: "Suche löschen",
+      editSearch: "Suche bearbeiten",
+      newChat: "Neuer Chat",
+      newConversation: "Neue Konversation",
+      noPast: "Noch keine früheren Gespräche.",
+      chatWith: "Chat mit ",
+      openChat: "Chat öffnen mit ",
+      closeChat: "Chat schließen",
+      minimize: "Chat minimieren",
+      talkHuman: "Mit einem Menschen sprechen",
+      handoff: "Brauchen Sie einen Menschen? Tippen Sie oben auf das Personensymbol.",
+      cancel: "Abbrechen",
+      retry: "Erneut versuchen",
+      dismiss: "Schließen",
+      poweredBy: "Bereitgestellt von",
+      attachFile: "Datei anhängen",
+      removeFile: "Datei entfernen",
+      readAloud: "Vorlesen",
+      toggleSound: "Ton ein/aus",
+      voiceInput: "Spracheingabe",
+      emoji: "Emoji",
+      browseStore: "Shop durchstöbern",
+      basedOn: "Basierend auf:",
+      lookingFor: "Suche nach:",
+      addToCart: "In den Warenkorb",
+      addedToCart: "Zum Warenkorb hinzugefügt: ",
+      restock: "Benachrichtigung bei Wiederverfügbarkeit für ",
+      enterTerm: "Suchbegriff eingeben",
+      helpEmpty: "Noch keine Hilfeartikel. Stellen Sie oben eine Frage.",
+      busy: "Beschäftigt, versuche erneut...",
+      retrying: "Wird erneut versucht...",
+      connErr: "Verbindungsfehler. Bitte erneut versuchen.",
+      connLost: "Verbindung getrennt. Bitte erneut versuchen.",
+      tooFast: "Der Chat ist gerade beschäftigt. Bitte versuchen Sie es gleich noch einmal.",
+      unavailable: "Chat vorübergehend nicht verfügbar. Bitte versuchen Sie es gleich noch einmal.",
+      badRequest: "Entschuldigung, ich konnte Ihre Nachricht nicht verarbeiten. Bitte erneut versuchen.",
+      genericErr: "Entschuldigung, etwas ist schiefgelaufen. Bitte erneut versuchen.",
+      feedbackThanks: "Danke für Ihr Feedback!",
+      helpful: "Hilfreich",
+      notHelpful: "Nicht hilfreich",
+      quickShip: "Wie funktioniert der Versand?",
+      quickReturn: "Wie lautet die Rückgabepolitik?",
+      quickSell: "Was verkaufen Sie?",
+      quickHours: "Was sind Ihre Öffnungszeiten?",
+      quickDiscount: "Gibt es Rabatte oder Angebote?",
+      quickGift: "Ich brauche eine Geschenkidee",
+      quickSupport: "Wie erhalte ich Support?",
+      quickPay: "Wie bezahle ich?",
+      quickPopular: "Was sind Ihre beliebtesten Produkte?",
+      quickCheckout: "Können Sie mir beim Checkout helfen?",
+      quickLocation: "Wo befinden Sie sich?",
+      quickIntl: "Versenden Sie international?",
+      quickSizes: "Welche Größen sind verfügbar?",
+      quickSuggestion: "Brauchen Sie eine Empfehlung? Fragen Sie einfach!",
+    },
+    fr: {
+      leadTitle: "Avant de commencer — comment vous joindre ?",
+      typeMsg: "Écrivez votre message...",
+      attachMsg: "Écrivez un message ou envoyez le fichier...",
+      askQuestion: "Posez une question...",
+      welcome: "Bonjour !",
+      askAnything: "Posez-moi des questions sur notre boutique, nos produits ou vos commandes.",
+      welcomeBack: "Ravi de vous revoir ! Vous cherchez quelque chose de précis aujourd'hui ?",
+      findProduct: "Puis-je vous aider à trouver le produit parfait aujourd'hui ?",
+      helpNow: "Bonjour ! Besoin d'aide pour trouver quelque chose ?",
+      specificHelp: "Vous cherchez quelque chose de précis ? Je suis là pour vous aider.",
+      dontLeave: "Ne partez pas ! Puis-je vous aider à trouver quelque chose ?",
+      questions: "Des questions ? Je serai ravi d'y répondre.",
+      yourName: "Votre nom",
+      emailOpt: "E-mail (facultatif)",
+      email: "E-mail",
+      phoneOpt: "Téléphone (facultatif)",
+      needHelp: "Avec quoi avez-vous besoin d'aide ?",
+      skip: "Ajoutez un nom ou un e-mail, ou ignorez.",
+      send: "Envoyer le message",
+      search: "Rechercher",
+      clearSearch: "Effacer la recherche",
+      editSearch: "Modifier la recherche",
+      newChat: "Nouveau chat",
+      newConversation: "Nouvelle conversation",
+      noPast: "Aucune conversation précédente pour le moment.",
+      chatWith: "Discuter avec ",
+      openChat: "Ouvrir le chat avec ",
+      closeChat: "Fermer le chat",
+      minimize: "Réduire le chat",
+      talkHuman: "Parler à un humain",
+      handoff: "Besoin d'un humain ? Touchez l'icône de personne ci-dessus.",
+      cancel: "Annuler",
+      retry: "Réessayer",
+      dismiss: "Fermer",
+      poweredBy: "Propulsé par",
+      attachFile: "Joindre un fichier",
+      removeFile: "Supprimer le fichier",
+      readAloud: "Lire à voix haute",
+      toggleSound: "Son activé/désactivé",
+      voiceInput: "Saisie vocale",
+      emoji: "Emoji",
+      browseStore: "Parcourir la boutique",
+      basedOn: "Basé sur :",
+      lookingFor: "Vous cherchez :",
+      addToCart: "Ajouter au panier",
+      addedToCart: "Ajouté au panier : ",
+      restock: "Alerte de réapprovisionnement enregistrée pour ",
+      enterTerm: "Saisissez un terme de recherche",
+      helpEmpty: "Aucun article d'aide pour le moment. Posez une question ci-dessus.",
+      busy: "Occupé, nouvelle tentative...",
+      retrying: "Nouvelle tentative...",
+      connErr: "Erreur de connexion. Veuillez réessayer.",
+      connLost: "Connexion perdue. Veuillez réessayer.",
+      tooFast: "Le chat est occupé pour le moment. Veuillez réessayer dans un instant.",
+      unavailable: "Chat temporairement indisponible. Veuillez réessayer dans un instant.",
+      badRequest: "Désolé, je n'ai pas pu traiter votre message. Veuillez réessayer.",
+      genericErr: "Désolé, une erreur est survenue. Veuillez réessayer.",
+      feedbackThanks: "Merci pour votre retour !",
+      helpful: "Utile",
+      notHelpful: "Pas utile",
+      quickShip: "Comment fonctionne la livraison ?",
+      quickReturn: "Quelle est la politique de retour ?",
+      quickSell: "Que vendez-vous ?",
+      quickHours: "Quels sont vos horaires ?",
+      quickDiscount: "Avez-vous des réductions ou offres ?",
+      quickGift: "J'ai besoin d'une idée cadeau",
+      quickSupport: "Comment obtenir de l'aide ?",
+      quickPay: "Comment payer ?",
+      quickPopular: "Quels sont vos produits les plus populaires ?",
+      quickCheckout: "Pouvez-vous m'aider avec le paiement ?",
+      quickLocation: "Où êtes-vous situé ?",
+      quickIntl: "Livrez-vous à l'international ?",
+      quickSizes: "Quelles tailles sont disponibles ?",
+      quickSuggestion: "Besoin d'une recommandation ? Demandez-moi !",
+    },
+    es: {
+      leadTitle: "Antes de empezar — ¿cómo podemos contactarte?",
+      typeMsg: "Escribe tu mensaje...",
+      attachMsg: "Escribe un mensaje o envía el archivo...",
+      askQuestion: "Haz una pregunta...",
+      welcome: "¡Hola!",
+      askAnything: "Pregúntame sobre nuestra tienda, productos o pedidos.",
+      welcomeBack: "¡Bienvenido de nuevo! ¿Buscas algo específico hoy?",
+      findProduct: "¿Puedo ayudarte a encontrar el producto perfecto hoy?",
+      helpNow: "¡Hola! ¿Necesitas ayuda para encontrar algo?",
+      specificHelp: "¿Buscas algo específico? Estoy aquí para ayudarte.",
+      dontLeave: "¡No te vayas! ¿Puedo ayudarte a encontrar algo?",
+      questions: "¿Tienes preguntas? Estaré encantado de responderlas.",
+      yourName: "Tu nombre",
+      emailOpt: "Correo electrónico (opcional)",
+      email: "Correo electrónico",
+      phoneOpt: "Teléfono (opcional)",
+      needHelp: "¿Con qué necesitas ayuda?",
+      skip: "Añade un nombre o correo, u omítelo.",
+      send: "Enviar mensaje",
+      search: "Buscar",
+      clearSearch: "Borrar búsqueda",
+      editSearch: "Editar búsqueda",
+      newChat: "Nuevo chat",
+      newConversation: "Nueva conversación",
+      noPast: "Aún no hay conversaciones anteriores.",
+      chatWith: "Chatear con ",
+      openChat: "Abrir chat con ",
+      closeChat: "Cerrar chat",
+      minimize: "Minimizar chat",
+      talkHuman: "Hablar con una persona",
+      handoff: "¿Necesitas ayuda humana? Toca el icono de persona arriba.",
+      cancel: "Cancelar",
+      retry: "Reintentar",
+      dismiss: "Cerrar",
+      poweredBy: "Impulsado por",
+      attachFile: "Adjuntar archivo",
+      removeFile: "Eliminar archivo",
+      readAloud: "Leer en voz alta",
+      toggleSound: "Sonido activado/desactivado",
+      voiceInput: "Entrada de voz",
+      emoji: "Emoji",
+      browseStore: "Explorar tienda",
+      basedOn: "Basado en:",
+      lookingFor: "Buscando:",
+      addToCart: "Añadir al carrito",
+      addedToCart: "Añadido al carrito: ",
+      restock: "Alerta de reposición guardada para ",
+      enterTerm: "Introduce un término de búsqueda",
+      helpEmpty: "Aún no hay artículos de ayuda. Haz una pregunta arriba.",
+      busy: "Ocupado, reintentando...",
+      retrying: "Reintentando...",
+      connErr: "Error de conexión. Inténtalo de nuevo.",
+      connLost: "Conexión perdida. Inténtalo de nuevo.",
+      tooFast: "El chat está ocupado ahora mismo. Inténtalo de nuevo en un momento.",
+      unavailable: "Chat temporalmente no disponible. Inténtalo de nuevo en un momento.",
+      badRequest: "Lo siento, no pude procesar tu mensaje. Inténtalo de nuevo.",
+      genericErr: "Lo siento, algo salió mal. Inténtalo de nuevo.",
+      feedbackThanks: "¡Gracias por tus comentarios!",
+      helpful: "Útil",
+      notHelpful: "No útil",
+      quickShip: "¿Cómo funciona el envío?",
+      quickReturn: "¿Cuál es la política de devoluciones?",
+      quickSell: "¿Qué vendéis?",
+      quickHours: "¿Cuáles son vuestros horarios?",
+      quickDiscount: "¿Tenéis descuentos u ofertas?",
+      quickGift: "Necesito una idea de regalo",
+      quickSupport: "¿Cómo obtengo soporte?",
+      quickPay: "¿Cómo pago?",
+      quickPopular: "¿Cuáles son vuestros productos más populares?",
+      quickCheckout: "¿Puedes ayudarme con el pago?",
+      quickLocation: "¿Dónde estáis ubicados?",
+      quickIntl: "¿Enviáis internacionalmente?",
+      quickSizes: "¿Qué tallas están disponibles?",
+      quickSuggestion: "¿Necesitas una recomendación? ¡Solo pregunta!",
+    },
+  };
+
+  function t(key) {
+    var table = CC_STRINGS[CC_LANG] || CC_STRINGS.en;
+    if (table && table[key]) return table[key];
+    if (CC_STRINGS.en[key]) return CC_STRINGS.en[key];
+    return key;
+  }
+
   var savedSessionId = (function () {
     try {
       return localStorage.getItem(SESSION_KEY);
@@ -190,21 +597,21 @@
   }
 
   var PROACTIVE_MESSAGES = [
-    "Hi! Need help finding something?",
-    "Looking for something specific? I'm here to help.",
-    "Can I help you find the perfect product today?",
-    "Have questions? I'd be happy to answer them.",
+    t("helpNow"),
+    t("specificHelp"),
+    t("findProduct"),
+    t("questions"),
     "Not sure what you need? Tell me a bit and I'll help narrow it down.",
-    "Need a recommendation? Just ask!",
+    t("quickSuggestion"),
   ];
 
   var SUGGESTION_CHIPS = [
-    "What do you sell?",
-    "I need a gift idea",
-    "What are your most popular items?",
-    "Do you have any discounts or offers?",
-    "How does shipping work?",
-    "Talk to a human",
+    t("quickSell"),
+    t("quickGift"),
+    t("quickPopular"),
+    t("quickDiscount"),
+    t("quickShip"),
+    t("talkHuman"),
   ];
 
   var EMOJIS = [
@@ -284,7 +691,7 @@
     if (exitIntentTriggered || userInteractedWithChat || !PROACTIVE_ENABLED) return;
     if (e.clientY > 0) return;
     exitIntentTriggered = true;
-    triggerProactiveWithMsg("Don't leave yet! Can I help you find something?");
+    triggerProactiveWithMsg(t("dontLeave"));
     fetch(CHATBOT_BASE + "/api/flows/trigger", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -332,7 +739,7 @@
     setTimeout(function () {
       if (!userInteractedWithChat && !proactiveShownThisSession) {
         proactiveShownThisSession = true;
-        triggerProactiveWithMsg("Welcome back! Looking for something specific today?");
+        triggerProactiveWithMsg(t("welcomeBack"));
       }
     }, 3000);
   }
@@ -729,16 +1136,16 @@
       "</div></div>" +
       '<div class="cc-header-actions">' +
       (HANDOFF_ENABLED
-        ? '<button id="cc-ai-handoff-btn" class="cc-header-btn" type="button" title="Talk to a human">' +
+        ?       '<button id="cc-ai-handoff-btn" class="cc-header-btn" type="button" title="' + t("talkHuman") + '">' +
           '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></button>'
         : "") +
       '<button id="cc-ai-sound" class="cc-header-btn' +
       (soundMuted ? "" : " active") +
-      '" type="button" title="Toggle sound">' +
+      '" type="button" title="' + t("toggleSound") + '">' +
       '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg></button>' +
-      '<button id="cc-ai-new-chat" class="cc-header-btn" type="button" title="New conversation">' +
+      '<button id="cc-ai-new-chat" class="cc-header-btn" type="button" title="' + t("newConversation") + '">' +
       '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></button>' +
-      '<button id="cc-ai-close" class="cc-header-btn" type="button" title="Minimize chat" aria-label="Close chat">' +
+      '<button id="cc-ai-close" class="cc-header-btn" type="button" title="' + t("minimize") + '" aria-label="' + t("closeChat") + '">' +
       '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 15l-6-6-6 6"/></svg></button>' +
       "</div>";
     windowEl.appendChild(header);
@@ -746,23 +1153,23 @@
     var leadEl = document.createElement("div");
     leadEl.id = "cc-ai-lead";
     leadEl.innerHTML =
-      '<div class="cc-form-title">Before we start — how can we reach you?</div>' +
-      '<div class="cc-form-row"><input id="cc-lead-name" type="text" placeholder="Your name" autocomplete="name" /></div>' +
-      '<div class="cc-form-row"><input id="cc-lead-email" type="email" placeholder="Email (optional)" autocomplete="email" /></div>' +
+      '<div class="cc-form-title">' + t("leadTitle") + '</div>' +
+      '<div class="cc-form-row"><input id="cc-lead-name" type="text" placeholder="' + t("yourName") + '" autocomplete="name" /></div>' +
+      '<div class="cc-form-row"><input id="cc-lead-email" type="email" placeholder="' + t("emailOpt") + '" autocomplete="email" /></div>' +
       '<div class="cc-form-actions">' +
-      '<button type="button" class="cc-btn cc-btn-primary" id="cc-lead-start">Start chat</button>' +
-      '<button type="button" class="cc-btn cc-btn-ghost" id="cc-lead-skip">Skip</button>' +
+      '<button type="button" class="cc-btn cc-btn-primary" id="cc-lead-start">' + t("send") + '</button>' +
+      '<button type="button" class="cc-btn cc-btn-ghost" id="cc-lead-skip">' + t("skip") + '</button>' +
       "</div>";
     windowEl.appendChild(leadEl);
 
     var handoffEl = document.createElement("div");
     handoffEl.id = "cc-ai-handoff";
     handoffEl.innerHTML =
-      '<div class="cc-form-title">Talk to a human</div>' +
-      '<div class="cc-form-row"><input id="cc-ho-name" type="text" placeholder="Your name" /></div>' +
-      '<div class="cc-form-row"><input id="cc-ho-email" type="email" placeholder="Email" /></div>' +
-      '<div class="cc-form-row"><input id="cc-ho-phone" type="tel" placeholder="Phone (optional)" /></div>' +
-      '<div class="cc-form-row"><textarea id="cc-ho-issue" rows="2" placeholder="What do you need help with?"></textarea></div>' +
+      '<div class="cc-form-title">' + t("talkHuman") + '</div>' +
+      '<div class="cc-form-row"><input id="cc-ho-name" type="text" placeholder="' + t("yourName") + '" /></div>' +
+      '<div class="cc-form-row"><input id="cc-ho-email" type="email" placeholder="' + t("email") + '" /></div>' +
+      '<div class="cc-form-row"><input id="cc-ho-phone" type="tel" placeholder="' + t("phoneOpt") + '" /></div>' +
+      '<div class="cc-form-row"><textarea id="cc-ho-issue" rows="2" placeholder="' + t("needHelp") + '"></textarea></div>' +
       '<div class="cc-form-actions">' +
       '<button type="button" class="cc-btn cc-btn-primary" id="cc-ho-submit">Request callback</button>' +
       '<button type="button" class="cc-btn cc-btn-ghost" id="cc-ho-cancel">Cancel</button>' +
@@ -796,11 +1203,11 @@
       "</div>" +
       '<div class="cc-home-welcome">' +
       '<h2 class="cc-home-title">' +
-      (BOT_NAME ? "Hi, I'm " + escapeHtml(BOT_NAME) + " \u{1F44B}" : "Hi there!") +
+      (BOT_NAME ? "Hi, I'm " + escapeHtml(BOT_NAME) + " \u{1F44B}" : t("welcome")) +
       "</h2>" +
       "</div>" +
       '<p class="cc-home-text">' +
-      (GREETING ? escapeHtml(GREETING) : "Ask me anything about our store, products, or orders.") +
+      (GREETING ? escapeHtml(GREETING) : t("askAnything")) +
       "</p>" +
       "</div>" +
       '<div class="cc-home-cards" id="cc-home-cards"></div>';
@@ -810,15 +1217,15 @@
     // later phases; ship as simple placeholders so the nav bar has somewhere to go.
     var messagesListEl = document.createElement("div");
     messagesListEl.id = "cc-ai-messages-list";
-    messagesListEl.innerHTML = '<div class="cc-conv-empty">Your conversations will appear here.</div>';
+    messagesListEl.innerHTML = '<div class="cc-conv-empty">' + t("noPast") + '</div>';
     bodyEl.appendChild(messagesListEl);
 
     var helpEl = document.createElement("div");
     helpEl.id = "cc-ai-help";
     helpEl.innerHTML =
       '<div class="cc-kb-search">' +
-      '<input id="cc-kb-input" type="text" placeholder="Ask a question..." autocomplete="off" />' +
-      '<button type="button" id="cc-kb-search-btn" aria-label="Search">' + SEARCH_ICON + "</button>" +
+      '<input id="cc-kb-input" type="text" placeholder="' + t("askQuestion") + '" autocomplete="off" />' +
+      '<button type="button" id="cc-kb-search-btn" aria-label="' + t("search") + '">' + SEARCH_ICON + "</button>" +
       "</div>" +
       '<div id="cc-faq-list" class="cc-faq-list"></div>';
     bodyEl.appendChild(helpEl);
@@ -903,7 +1310,7 @@
     var input = document.createElement("textarea");
     input.id = "cc-ai-input";
     input.rows = 1;
-    input.placeholder = "Type your message...";
+    input.placeholder = t("typeMsg");
     input.setAttribute("aria-label", "Message");
     inputWrapper.appendChild(input);
 
@@ -916,7 +1323,7 @@
       '<img class="cc-file-thumb" id="cc-file-thumb" alt="" style="display:none" />' +
       '<span class="cc-file-icon" id="cc-file-icon">📎</span>' +
       '<span id="cc-file-preview-name"></span>' +
-      '<button id="cc-file-preview-remove" type="button" aria-label="Remove file">&times;</button>';
+      '<button id="cc-file-preview-remove" type="button" aria-label="' + t("removeFile") + '">&times;</button>';
 
     var fileInput = document.createElement("input");
     fileInput.type = "file";
@@ -927,8 +1334,8 @@
     var attachBtn = document.createElement("button");
     attachBtn.id = "cc-ai-attach";
     attachBtn.type = "button";
-    attachBtn.title = "Attach file";
-    attachBtn.setAttribute("aria-label", "Attach file");
+    attachBtn.title = t("attachFile");
+    attachBtn.setAttribute("aria-label", t("attachFile"));
     attachBtn.innerHTML =
       '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>';
     attachBtn.addEventListener("click", function () {
@@ -947,7 +1354,7 @@
         thumb.removeAttribute("src");
       }
       if (icon) icon.style.display = "inline";
-      input.placeholder = "Type your message...";
+      input.placeholder = t("typeMsg");
     }
 
     function setFile(file) {
@@ -972,7 +1379,7 @@
           if (thumb) thumb.style.display = "none";
           if (icon) icon.style.display = "inline";
         }
-        input.placeholder = "Add a message or send the file...";
+        input.placeholder = t("attachMsg");
       };
       reader.readAsDataURL(file);
     }
@@ -1067,7 +1474,7 @@
     footer.id = "cc-ai-footer";
     if (!SHOW_BRANDING) footer.className = "hidden";
     footer.innerHTML =
-      '<div class="footer-text">Powered by <a href="https://chatbot.circucity.com" class="footer-link" target="_blank" rel="noopener">CircuCity AI</a></div>';
+      '<div class="footer-text">' + t("poweredBy") + ' <a href="https://chatbot.circucity.com" class="footer-link" target="_blank" rel="noopener">CircuCity AI</a></div>';
     windowEl.appendChild(footer);
 
     widget.appendChild(windowEl);
@@ -1239,7 +1646,7 @@
         closeHandoff();
         if (res.ok) {
           addMessage("bot", data.reply || "Thanks — a teammate will follow up shortly.");
-          showToast("Handoff requested", "success");
+          showToast(t("handoff"), "success");
         } else {
           showToast(data.error || "Could not request handoff", "error");
         }
@@ -1462,7 +1869,7 @@
 
     function runKbSearch(query) {
       if (!query || !query.trim()) {
-        showToast("Enter a search term", "info");
+        showToast(t("enterTerm"), "info");
         return;
       }
       hideCsat();
@@ -1481,7 +1888,7 @@
       if (!list) return;
       list.innerHTML = "";
       if (!faqs || !faqs.length) {
-        list.innerHTML = '<div class="cc-conv-empty">No help articles yet. Ask a question above.</div>';
+        list.innerHTML = '<div class="cc-conv-empty">' + t("helpEmpty") + '</div>';
         return;
       }
       faqs.forEach(function (faq) {
@@ -1639,7 +2046,7 @@
           var speakerBtn = document.createElement("button");
           speakerBtn.className = "cc-msg-speaker";
           speakerBtn.type = "button";
-          speakerBtn.title = "Read aloud";
+          speakerBtn.title = t("readAloud");
           speakerBtn.innerHTML =
             '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>';
           speakerBtn.addEventListener("click", function (e) {
@@ -1786,7 +2193,7 @@
             var speakerBtn = document.createElement("button");
             speakerBtn.className = "cc-msg-speaker";
             speakerBtn.type = "button";
-            speakerBtn.title = "Read aloud";
+            speakerBtn.title = t("readAloud");
             speakerBtn.innerHTML =
               '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>';
             speakerBtn.addEventListener("click", function (e) {
@@ -2038,7 +2445,7 @@
         var human = document.createElement("button");
         human.type = "button";
         human.className = "cc-err-btn";
-        human.textContent = "Talk to a human";
+        human.textContent = t("talkHuman");
         human.addEventListener("click", function () {
           if (typeof openHandoff === "function") openHandoff();
         });
@@ -2058,7 +2465,7 @@
       if (data.conversationState) renderConversationState(data.conversationState);
       if (data.actions && data.actions.length > 0) handleChatActions(data.actions);
       if (data.offerHandoff && HANDOFF_ENABLED) {
-        addMessage("system", "Need a human? Tap the person icon above.", true);
+        addMessage("system", t("handoff"), true);
       }
       if (data.flowMessages && data.flowMessages.length > 0) {
         showFlowMessages(data.flowMessages);
@@ -2264,7 +2671,7 @@
       if (!items.length) {
         var empty = document.createElement("div");
         empty.className = "cc-conv-empty";
-        empty.textContent = "No past conversations yet.";
+        empty.textContent = t("noPast");
         list.appendChild(empty);
         return;
       }
@@ -2679,7 +3086,7 @@
           }, 800);
         }
         if (act.type === "stock_alert_subscribed") {
-          addMessage("system", "Restock alert saved for " + act.email, true);
+          addMessage("system", t("restock") + act.email, true);
         }
       }
     }

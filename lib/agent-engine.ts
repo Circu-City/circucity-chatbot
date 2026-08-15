@@ -7,6 +7,7 @@ import { buildCiraVoiceRules } from "@/lib/cira-voice";
 import { getStoreCatalog } from "@/lib/product-catalog-cache";
 import { ASSISTANT_NAME } from "@/lib/assistant";
 import { getComplementCategories } from "@/lib/complementary-pairings";
+import { detectLanguage, languageInstruction, languageName } from "@/lib/language";
 
 let _openai: OpenAI | null = null;
 
@@ -25,6 +26,60 @@ function getLLMClient(): OpenAI {
 const MODEL = process.env.REPLY_MODEL || process.env.LLM_MODEL || "anthropic/claude-opus-5";
 const AGENT_MODEL = process.env.AGENT_MODEL || process.env.AGENT_FREE_MODEL || "llama-3.1-8b-instant";
 const FREE_MODEL = process.env.AGENT_FREE_MODEL || "nvidia/nemotron-3-super-120b-a12b:free";
+
+const FOUND_SUMMARIES: Record<string, string[]> = {
+  en: ["I found {n} products that might work — take a look below."],
+  sv: [
+    "Jag hittade {n} produkter som kan fungera — ta en titt nedan.",
+    "Jag hittade {n} produkter som matchar — kika nedan!",
+  ],
+  de: [
+    "Ich habe {n} Produkte gefunden, die passen könnten — sehen Sie sich diese unten an.",
+    "Ich habe {n} passende Produkte gefunden — schauen Sie unten vorbei!",
+  ],
+  fr: [
+    "J'ai trouvé {n} produits qui pourraient convenir — jetez un œil ci-dessous.",
+    "J'ai trouvé {n} produits correspondants — regardez ci-dessous !",
+  ],
+  es: [
+    "Encontré {n} productos que podrían funcionar — míralos a continuación.",
+    "Encontré {n} productos que coinciden — ¡échales un vistazo!",
+  ],
+  nl: [
+    "Ik heb {n} producten gevonden die kunnen werken — bekijk ze hieronder.",
+    "Ik vond {n} passende producten — kijk hieronder!",
+  ],
+  it: [
+    "Ho trovato {n} prodotti che potrebbero andare bene — dai un'occhiata qui sotto.",
+    "Ho trovato {n} prodotti corrispondenti — guarda qui sotto!",
+  ],
+  pt: [
+    "Encontrei {n} produtos que podem funcionar — veja abaixo.",
+    "Encontrei {n} produtos correspondentes — confira abaixo!",
+  ],
+  da: [
+    "Jeg fandt {n} produkter, der kan fungere — se dem herunder.",
+    "Jeg fandt {n} matchende produkter — kig herunder!",
+  ],
+  no: [
+    "Jeg fant {n} produkter som kan passe — se dem nedenfor.",
+    "Jeg fant {n} matchende produkter — sjekk nedenfor!",
+  ],
+  fi: [
+    "Löysin {n} tuotetta, jotka saattavat sopia — katso alta.",
+    "Löysin {n} tuotetta — katso alta!",
+  ],
+  pl: [
+    "Znalazłem {n} produktów, które mogą pasować — zobacz poniżej.",
+    "Znalazłem {n} pasujących produktów — sprawdź poniżej!",
+  ],
+};
+
+function buildFoundSummary(count: number, lang: string): string {
+  const variants = FOUND_SUMMARIES[lang] || FOUND_SUMMARIES.en;
+  const variant = variants[Math.min(count - 1, variants.length - 1)];
+  return variant.replace("{n}", String(count));
+}
 
 export interface AgentContext {
   store: any;
@@ -274,10 +329,14 @@ async function executeTool(name: string, args: any, ctx: AgentContext): Promise<
 export async function runAgent(userMessage: string, ctx: AgentContext): Promise<AgentResult> {
   const storeInfo = buildStoreInfo(ctx.store, ctx.crawlData, userMessage) || "";
   const voiceRules = buildCiraVoiceRules();
+  const userLang = detectLanguage(userMessage);
+  const langRule = languageInstruction(userLang);
 
   const systemPrompt = `You are ${ASSISTANT_NAME}, an AI shopping assistant for ${ctx.store.name || "this store"}.
 
 ${voiceRules}
+
+${langRule}
 
 STORE INFORMATION:
 ${storeInfo.substring(0, 2000) || "No store information available."}
@@ -299,7 +358,8 @@ RULES:
 - Do NOT make up product information - only use tool results
 - Format prices with currency
 - Suggest relevant follow-up products when appropriate
-- Some product search results are tagged "isComplementary": true — these pair well with the main match (e.g. shoes suggested alongside jeans), they are not additional direct matches for the query. Mention them naturally as a pairing suggestion (e.g. "this would also go well with...") rather than listing them as equally-relevant results.`;
+- Some product search results are tagged "isComplementary": true — these pair well with the main match (e.g. shoes suggested alongside jeans), they are not additional direct matches for the query. Mention them naturally as a pairing suggestion (e.g. "this would also go well with...") rather than listing them as equally-relevant results.
+- TOOL LANGUAGE: the store catalog, FAQs, and documents are in English. When searching with tools, translate your tool query into ENGLISH keywords (e.g. a Swedish customer asking about "skrivbordslampa" should search "desk lamp"). Your chat reply to the customer must always be in their language (${languageName(userLang)}).`;
 
   const historyMsgs = ctx.messages.slice(-6).map((m: any) => ({
     role: m.role === "assistant" ? "assistant" : "user",
@@ -350,7 +410,7 @@ RULES:
       const intro = rawContent.replace(PSEUDO_FUNCTION_RE, "").trim();
       let summary: string;
       if (products.length > 0) {
-        summary = "I found " + products.length + " product" + (products.length === 1 ? "" : "s") + " that might work — take a look below.";
+        summary = buildFoundSummary(products.length, userLang);
       } else if (actions.length > 0) {
         summary = intro || "Done.";
       } else {
@@ -388,7 +448,7 @@ RULES:
       // once this bubbles up to the route handler's own fallback pipeline).
       let summary: string;
       if (products.length > 0) {
-        summary = "I found " + products.length + " product" + (products.length === 1 ? "" : "s") + " that might work — take a look below.";
+        summary = buildFoundSummary(products.length, userLang);
       } else if (actions.length > 0) {
         summary = "Done.";
       } else {
