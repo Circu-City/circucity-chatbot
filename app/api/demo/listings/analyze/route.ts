@@ -36,6 +36,7 @@ function track(key: string): { used: number; limit: number } {
 const requestSchema = z.object({
   imageDataUrl: z.string().max(8_000_000).optional(),
   titleHint: z.string().trim().max(120).optional().default(''),
+  language: z.string().trim().max(40).optional().default('sv'),
 }).refine((value) => value.imageDataUrl || value.titleHint, { message: 'Add a product photo or title' });
 
 const analysisSchema = z.object({
@@ -141,9 +142,33 @@ const conditionMultipliers = { new: 1, like_new: 0.85, good: 0.65, fair: 0.45, p
 
 const CATALOGUE_INSTRUCTIONS = `You catalogue second-hand marketplace products for the CircuCity Swedish resale marketplace. Reply with ONLY a JSON object with keys: category, title, description, condition, suggested_price_sek, estimated_age, estimated_weight_kg, quantity, attributes, grounded. category MUST be one (and only one) of these marketplace categories: ${MARKETPLACE_CATEGORIES.join(', ')}. If the item is a handbag, backpack, tote, satchel, clutch, wallet, duffel, briefcase or any kind of bag put it in "Bag" — never put bags in "General" or in "Sustainable Fashion". If unsure, put it in "General" and give a fallback price estimate rather than guessing a wrong category. Condition must be one of new, like_new, good, fair, poor. Title max 80 characters; description max 300 characters. quantity is the number of identical units the seller has in stock — use 1 unless the photo clearly shows several identical units being sold together. Be honest about visible wear. Never invent a brand, model, material, size, age, authenticity, or functionality that is not clearly visible or confirmed. estimated_weight_kg is the typical shipping weight in kilograms for an item like this (e.g. a t-shirt is about 0.2, a handbag about 0.9, a laptop about 1.8, a book about 0.3). estimated_age must be a short string (e.g. "2 years", "Unknown"), not a number. Every value in "attributes" must be a single string — if there are multiple options, join them with a comma instead of using an array. suggested_price_sek must be a realistic SECOND-HAND price in Swedish kronor for the stated condition, not a new-retail price.`;
 
+const LISTING_LANGUAGES: Record<string, string> = {
+  sv: 'Swedish (Svenska)', en: 'English', nl: 'Dutch (Nederlands)', de: 'German (Deutsch)',
+  fi: 'Finnish (Suomi)', fr: 'French (Français)', es: 'Spanish (Español)', it: 'Italian (Italiano)',
+  da: 'Danish (Dansk)', no: 'Norwegian (Norsk)',
+};
+
+function listingLanguageInstruction(language: string): string {
+  const name = LISTING_LANGUAGES[language] || LISTING_LANGUAGES.sv;
+  return `Write the "title" and "description" values in ${name}. Do not translate the category, condition, or attribute keys — only title and description text.`;
+}
+
 const GEMINI_INSTRUCTIONS = `${CATALOGUE_INSTRUCTIONS} You have a Google Search tool: use it to identify the exact product (brand/model) from the photo and to check real current pricing (new retail and/or comparable second-hand listings) before answering, then base suggested_price_sek on what you found, discounted for condition. Set "grounded" to true only if your search actually found this specific item or a very close match; otherwise set it to false and estimate conservatively.`;
 
-function fallbackAnalysis(titleHint: string): Analysis {
+const FALLBACK_LABELS: Record<string, { offered: string; review: string }> = {
+  sv: { offered: 'Begagnat erbjudande', review: 'Granska fotot och lägg till slitage, mått eller medföljande tillbehör innan publicering.' },
+  en: { offered: 'Second-hand item offered', review: 'Review the photo and add any wear, dimensions, or included accessories before publishing.' },
+  nl: { offered: 'Tweedehands aangeboden', review: 'Controleer de foto en voeg slijtage, afmetingen of meegeleverde accessoires toe voordat je publiceert.' },
+  de: { offered: 'Gebraucht angeboten', review: 'Überprüfen Sie das Foto und ergänzen Sie Gebrauchsspuren, Maße oder enthaltenes Zubehör, bevor Sie veröffentlichen.' },
+  fi: { offered: 'Käytetty tarjous', review: 'Tarkista valokuva ja lisää kuluminen, mitat tai mukana tulevat lisävarusteet ennen julkaisua.' },
+  fr: { offered: 'Article de seconde main', review: "Examinez la photo et ajoutez l'usure, les dimensions ou les accessoires inclus avant de publier." },
+  es: { offered: 'Artículo de segunda mano', review: 'Revisa la foto y añade desgaste, dimensiones o accesorios incluidos antes de publicar.' },
+  it: { offered: 'Articolo di seconda mano', review: 'Controlla la foto e aggiungi usura, dimensioni o accessori inclusi prima di pubblicare.' },
+  da: { offered: 'Brugt tilbudt', review: 'Gennemgå billedet og tilføj slid, mål eller medfølgende tilbehør, før du publicerer.' },
+  no: { offered: 'Brukt tilbudt', review: 'Gå gjennom bildet og legg til slitasje, mål eller inkluderte tilbehør før publisering.' },
+};
+
+function fallbackAnalysis(titleHint: string, language = 'sv'): Analysis {
   const title = titleHint.trim() || 'Second-hand item';
   const lower = title.toLowerCase();
   const category = lower.match(/handbag|briefcase|backpack|rucksack|tote|satchel|clutch|hand bag|messenger|pochette|duffel/) ? 'Bag'
@@ -156,7 +181,7 @@ function fallbackAnalysis(titleHint: string): Analysis {
   return {
     category,
     title: title.slice(0, 80),
-    description: `${title} offered second-hand. Review the photo and add any wear, dimensions, or included accessories before publishing.`.slice(0, 300),
+    description: `${title} — ${FALLBACK_LABELS[language]?.offered || FALLBACK_LABELS.sv.offered}. ${FALLBACK_LABELS[language]?.review || FALLBACK_LABELS.sv.review}`.slice(0, 300),
     condition: 'good' as const,
     suggested_price_sek: Math.round((categoryMedians[category.toLowerCase()] || categoryMedians.general) * conditionMultipliers.good),
     estimated_age: 'Unknown',
@@ -185,7 +210,7 @@ function extractJson(text: string): unknown {
 // Tier 1: Gemini vision + built-in Google Search grounding, in one call. Real
 // online data for price/description ("search lens"). Returns null (never throws
 // to the caller) so the route can fall through to the next tier.
-async function analyzeWithGemini(imageDataUrl: string, titleHint: string): Promise<unknown> {
+async function analyzeWithGemini(imageDataUrl: string, titleHint: string, language: string): Promise<unknown> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) return null;
   const model = process.env.GEMINI_VISION_MODEL || process.env.GEMINI_MODEL || 'gemini-2.5-flash';
@@ -197,7 +222,7 @@ async function analyzeWithGemini(imageDataUrl: string, titleHint: string): Promi
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      systemInstruction: { parts: [{ text: GEMINI_INSTRUCTIONS }] },
+      systemInstruction: { parts: [{ text: GEMINI_INSTRUCTIONS + ' ' + listingLanguageInstruction(language) }] },
       contents: [{
         role: 'user',
         parts: [
@@ -222,7 +247,7 @@ async function analyzeWithGemini(imageDataUrl: string, titleHint: string): Promi
 }
 
 // Tier 2: OpenAI-compatible vision model, image-only guess (no live search).
-async function analyzeWithOpenRouterVision(imageDataUrl: string, titleHint: string): Promise<unknown> {
+async function analyzeWithOpenRouterVision(imageDataUrl: string, titleHint: string, language: string): Promise<unknown> {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) return null;
   const baseUrl = (process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1').replace(/\/$/, '');
@@ -236,7 +261,7 @@ async function analyzeWithOpenRouterVision(imageDataUrl: string, titleHint: stri
       max_tokens: 700,
       response_format: { type: 'json_object' },
       messages: [
-        { role: 'system', content: CATALOGUE_INSTRUCTIONS },
+        { role: 'system', content: CATALOGUE_INSTRUCTIONS + ' ' + listingLanguageInstruction(language) },
         {
           role: 'user',
           content: [
@@ -296,7 +321,7 @@ export async function POST(request: Request) {
 
     if (parsed.data.imageDataUrl) {
       try {
-        raw = await analyzeWithGemini(parsed.data.imageDataUrl, parsed.data.titleHint);
+        raw = await analyzeWithGemini(parsed.data.imageDataUrl, parsed.data.titleHint, parsed.data.language);
         if (raw) source = 'gemini';
       } catch (error) {
         console.error('[Demo Listing] Gemini analysis failed, trying next provider:', error);
@@ -304,7 +329,7 @@ export async function POST(request: Request) {
 
       if (!raw) {
         try {
-          raw = await analyzeWithOpenRouterVision(parsed.data.imageDataUrl, parsed.data.titleHint);
+          raw = await analyzeWithOpenRouterVision(parsed.data.imageDataUrl, parsed.data.titleHint, parsed.data.language);
           if (raw) source = 'vision';
         } catch (error) {
           console.error('[Demo Listing] Vision analysis failed, using local fallback:', error);
@@ -315,7 +340,7 @@ export async function POST(request: Request) {
     let analysis = analysisSchema.safeParse(raw);
     if (!analysis.success) {
       source = 'fallback';
-      analysis = analysisSchema.safeParse(fallbackAnalysis(parsed.data.titleHint));
+      analysis = analysisSchema.safeParse(fallbackAnalysis(parsed.data.titleHint, parsed.data.language));
     }
     if (!analysis.success) return NextResponse.json({ error: 'Could not produce a valid listing draft' }, { status: 502 });
 

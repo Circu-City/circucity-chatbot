@@ -22,6 +22,7 @@ export async function POST(request: Request) {
     const result = await analyzeListingImage(body);
     if (!result.ok) return NextResponse.json({ error: result.error }, { status: result.status });
 
+
     const store = await prisma.store.findFirst({ where: { userId: session.id }, select: { id: true } });
     if (!store) return NextResponse.json({ error: "Store not found" }, { status: 404 });
 
