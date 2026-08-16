@@ -114,14 +114,15 @@ data: {"type":"done","session_id":"visitor-abc-123"}`,
   --cookie "session=YOUR_SESSION_COOKIE" \\
   -d '{
     "imageDataUrl": "data:image/jpeg;base64,/9j/4AAQSkZJRg...",
-    "titleHint": "Nikon film camera"
+    "titleHint": "Nikon film camera",
+    "language": "de"
   }'`,
         response: `{
   "source": "gemini",
   "priceGrounded": true,
   "category": "Electronics",
-  "title": "Nikon F-601 film camera",
-  "description": "Working Nikon F-601 with 50mm f/1.8 lens...",
+  "title": "Nikon F-601 Filmkamera",
+  "description": "Funktionierende Nikon F-601 mit 50mm f/1.8 Objektiv...",
   "condition": "good",
   "suggestedPriceSek": 1450,
   "estimatedAge": "10 years",
@@ -134,6 +135,7 @@ data: {"type":"done","session_id":"visitor-abc-123"}`,
         params: [
           { name: "imageDataUrl", type: "string", required: true, description: "Base64 data URL of a JPEG, PNG or WEBP photo (max 8 MB)" },
           { name: "titleHint", type: "string", required: false, description: "Optional seller hint such as brand/model (max 120 chars)" },
+          { name: "language", type: "string", required: false, description: "Language for the generated title and description. One of: sv (default), en, nl, de, fi, fr, es, it, da, no" },
         ],
       },
       {
@@ -193,13 +195,14 @@ data: {"type":"done","session_id":"visitor-abc-123"}`,
   -H "x-api-key: YOUR_DEMO_KEY" \\
   -d '{
     "imageDataUrl": "data:image/jpeg;base64,/9j/4AAQSkZJRg...",
-    "titleHint": "Nikon film camera"
+    "titleHint": "Nikon film camera",
+    "language": "sv"
   }'`,
         response: `{
   "source": "gemini",
   "priceGrounded": true,
   "category": "Electronics",
-  "title": "Nikon F-601 film camera",
+  "title": "Nikon F-601 filmkamera",
   "description": "Working Nikon F-601 with 50mm f/1.8 lens...",
   "condition": "good",
   "suggestedPriceSek": 1450,
@@ -209,6 +212,7 @@ data: {"type":"done","session_id":"visitor-abc-123"}`,
         params: [
           { name: "imageDataUrl", type: "string", required: true, description: "Base64 data URL of a JPEG, PNG or WEBP photo (max 8 MB)" },
           { name: "titleHint", type: "string", required: false, description: "Optional seller hint (max 120 chars)" },
+          { name: "language", type: "string", required: false, description: "Language for the generated title and description. One of: sv (default), en, nl, de, fi, fr, es, it, da, no" },
           { name: "x-api-key", type: "header", required: false, description: "Demo key lifts the per-visitor cap to 50 analyses/day" },
         ],
       },
