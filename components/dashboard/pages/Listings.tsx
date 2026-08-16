@@ -221,7 +221,25 @@ export default function ListingsAppPage() {
 
   useEffect(() => {
     void loadState();
+    void (async () => {
+      try {
+        const res = await fetch('/api/listings/language');
+        const data = await res.json();
+        if (res.ok && data.language) setListingLanguage(data.language);
+      } catch { /* keep default */ }
+    })();
   }, []);
+
+  const changeListingLanguage = async (language: string) => {
+    setListingLanguage(language);
+    try {
+      await fetch('/api/listings/language', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ language }),
+      });
+    } catch { /* preference not critical */ }
+  };
 
   const updateDraft = (id: string, update: Partial<ListingDraft>) => {
     setDrafts((current) => current.map((draft) => draft.id === id ? { ...draft, ...update } : draft));
@@ -630,7 +648,7 @@ export default function ListingsAppPage() {
             <select
               id="listing-language"
               value={listingLanguage}
-              onChange={(event) => setListingLanguage(event.target.value)}
+              onChange={(event) => void changeListingLanguage(event.target.value)}
               className="rounded-lg border border-border bg-background px-2.5 py-1.5 text-sm font-medium text-dark-navy focus:outline-none focus:ring-2 focus:ring-primary/30"
             >
               {LISTING_LANGUAGE_OPTIONS.map((option) => (

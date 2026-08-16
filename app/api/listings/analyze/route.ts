@@ -19,6 +19,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
     }
 
+    if (!body.language) {
+      const user = await prisma.user.findUnique({ where: { id: session.id }, select: { listingLanguage: true } });
+      if (user?.listingLanguage) body.language = user.listingLanguage;
+    }
+
     const result = await analyzeListingImage(body);
     if (!result.ok) return NextResponse.json({ error: result.error }, { status: result.status });
 

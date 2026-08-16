@@ -21,6 +21,7 @@ model User {
   emailVerifiedAt  DateTime?
   totpSecret       String?
   twoFactorEnabled Boolean          @default(false)
+  listingLanguage   String           @default("sv")
   adminActions     AdminActionLog[]
   conversations    Conversation[]
   forumPosts       ForumPost[]
@@ -195,6 +196,7 @@ model Product {
   updatedAt   DateTime  @updatedAt
   slug        String?
   url         String?
+  embedding   Unsupported("vector")?
   store       Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
 
   @@index([storeId])

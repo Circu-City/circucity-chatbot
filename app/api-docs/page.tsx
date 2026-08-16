@@ -135,7 +135,7 @@ data: {"type":"done","session_id":"visitor-abc-123"}`,
         params: [
           { name: "imageDataUrl", type: "string", required: true, description: "Base64 data URL of a JPEG, PNG or WEBP photo (max 8 MB)" },
           { name: "titleHint", type: "string", required: false, description: "Optional seller hint such as brand/model (max 120 chars)" },
-          { name: "language", type: "string", required: false, description: "Language for the generated title and description. One of: sv (default), en, nl, de, fi, fr, es, it, da, no" },
+          { name: "language", type: "string", required: false, description: "Language for the generated title and description. One of: sv (default), en, nl, de, fi, fr, es, it, da, no. When omitted, your saved workspace default is used (set it in the Listings app or via PUT /api/listings/language)" },
         ],
       },
       {
