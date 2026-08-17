@@ -78,6 +78,12 @@ function SignInForm() {
               />
             </div>
 
+            <div className="flex justify-end">
+              <Link href="/forgot-password" className="text-sm text-gray-400 hover:text-lemon-green font-medium">
+                Forgot password?
+              </Link>
+            </div>
+
             {error && (
               <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3 text-sm text-red-400">
                 {error}

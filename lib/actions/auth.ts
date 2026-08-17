@@ -4,7 +4,8 @@ import { z } from "zod";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/db";
-import { hashPassword, verifyPassword, createToken, SessionUser } from "@/lib/auth";
+import { hashPassword, verifyPassword, createToken, createPasswordResetToken, verifyPasswordResetToken, SessionUser } from "@/lib/auth";
+import { sendEmail } from "@/lib/email";
 
 const signUpSchema = z.object({
   email: z.string().email("Invalid email address").max(255),
@@ -125,6 +126,68 @@ export async function signOut() {
   const cookieStore = await cookies();
   cookieStore.set("session", "", { maxAge: 0, path: "/" });
   redirect("/");
+}
+
+const resetRequestSchema = z.object({
+  email: z.string().email("Invalid email address").max(255),
+});
+
+export async function requestPasswordReset(data: { email: string }) {
+  const parsed = resetRequestSchema.safeParse(data);
+  if (!parsed.success) {
+    return { error: parsed.error.errors[0].message };
+  }
+
+  const user = await prisma.user.findUnique({ where: { email: parsed.data.email } });
+  if (!user || !user.passwordHash) {
+    return { success: true };
+  }
+
+  const token = createPasswordResetToken(user.id);
+  const baseUrl = process.env.NEXT_PUBLIC_URL || "https://chatbot.circucity.com";
+  const resetUrl = `${baseUrl}/reset-password?token=${encodeURIComponent(token)}`;
+
+  const ok = await sendEmail({
+    to: user.email,
+    subject: "Reset your CircuCity AI password",
+    text: `Hi${user.name ? " " + user.name : ""},
+
+We received a request to reset your CircuCity AI password. Click the link below to choose a new one (valid for 30 minutes):
+
+${resetUrl}
+
+If you didn't request this, you can safely ignore this email.
+
+- CircuCity AI`,
+    html: `<div style="font-family:sans-serif;max-width:480px;margin:0 auto"><h2 style="color:#0A1428">Reset your password</h2><p style="color:#475569">We received a request to reset your CircuCity AI password. Click the button below to choose a new one (valid for 30 minutes).</p><a href="${resetUrl}" style="display:inline-block;padding:10px 20px;background:#A3E635;color:#0A1428;text-decoration:none;border-radius:8px;font-weight:600;font-size:14px">Reset password</a><p style="margin-top:20px;font-size:12px;color:#94a3b8">If you didn't request this, you can safely ignore this email.<br/>- CircuCity AI</p></div>`,
+  });
+
+  if (!ok) {
+    return { error: "Failed to send reset email. Please try again later." };
+  }
+  return { success: true };
+}
+
+const resetPasswordSchema = z.object({
+  token: z.string().min(10, "Invalid reset link"),
+  password: z.string().min(6, "Password must be at least 6 characters").max(128),
+});
+
+export async function resetPassword(data: { token: string; password: string }) {
+  const parsed = resetPasswordSchema.safeParse(data);
+  if (!parsed.success) {
+    return { error: parsed.error.errors[0].message };
+  }
+
+  const userId = verifyPasswordResetToken(parsed.data.token);
+  if (!userId) {
+    return { error: "Invalid or expired reset link. Please request a new one." };
+  }
+
+  const passwordHash = await hashPassword(parsed.data.password);
+  await prisma.user.update({ where: { id: userId }, data: { passwordHash } });
+
+  return { success: true };
 }
 
 export async function getCurrentUser(): Promise<SessionUser | null> {

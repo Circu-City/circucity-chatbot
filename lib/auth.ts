@@ -46,6 +46,20 @@ export function verifyToken(token: string): SessionUser | null {
   }
 }
 
+export function createPasswordResetToken(userId: string): string {
+  return sign({ sub: userId, type: "password-reset" }, JWT_SECRET, { expiresIn: "30m" });
+}
+
+export function verifyPasswordResetToken(token: string): string | null {
+  try {
+    const payload = verify(token, JWT_SECRET) as { sub?: string; type?: string };
+    if (payload.type !== "password-reset" || !payload.sub) return null;
+    return payload.sub;
+  } catch {
+    return null;
+  }
+}
+
 export async function getSession(): Promise<SessionUser | null> {
   const cookieStore = await cookies();
 
