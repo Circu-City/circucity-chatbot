@@ -140,7 +140,6 @@ export default function ListingDeskPage() {
   const [activeConnector, setActiveConnector] = useState<typeof CONNECTORS[number] | null>(null);
   const [publishOpen, setPublishOpen] = useState(false);
   const [quota, setQuota] = useState<string>('');
-  const [listingLanguage, setListingLanguage] = useState('sv');
 
   // Read the embed flag on the client only to avoid server/client hydration
   // mismatches (window is unavailable during SSR).
@@ -163,7 +162,7 @@ export default function ListingDeskPage() {
       const analysisResponse = await fetch('/api/demo/listings/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageDataUrl: analysisImage, language: listingLanguage }),
+        body: JSON.stringify({ imageDataUrl: analysisImage }),
         signal: controller.signal,
       });
       clearTimeout(timeout);
@@ -451,26 +450,6 @@ export default function ListingDeskPage() {
             condition, second-hand price and shipping weight — while you keep capturing.
             Every draft must be reviewed before you export it to any platform.
           </p>
-          <label className="mt-4 inline-flex items-center gap-2 text-sm text-gray-300" htmlFor="listing-language">
-            AI Listing Language
-            <select
-              id="listing-language"
-              value={listingLanguage}
-              onChange={(event) => setListingLanguage(event.target.value)}
-              className="rounded-lg border border-white/15 bg-white/5 px-2.5 py-1.5 text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-lemon-green/40"
-            >
-              <option value="sv">Svenska</option>
-              <option value="en">English</option>
-              <option value="nl">Dutch</option>
-              <option value="de">German</option>
-              <option value="fi">Finnish</option>
-              <option value="fr">French</option>
-              <option value="es">Spanish</option>
-              <option value="it">Italian</option>
-              <option value="da">Danish</option>
-              <option value="no">Norwegian</option>
-            </select>
-          </label>
         </section>
 
         <section className="overflow-hidden rounded-3xl bg-white/5 border border-white/10">
