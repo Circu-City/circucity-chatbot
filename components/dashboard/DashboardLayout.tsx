@@ -42,6 +42,8 @@ import ImpersonationBanner from "@/components/ImpersonationBanner";
 import NotificationBell from "./NotificationBell";
 import { hasFeature, getPlanLevel } from "@/lib/feature-gating";
 import { FileText } from "lucide-react";
+import { DASHBOARD_LANGS, NATIVE_LANGS, DashboardLang } from "@/lib/dashboard-i18n";
+import { useDashboardI18n } from "./I18nProvider";
 
 interface NavItemWithPlan extends NavItemProps {
   feature?: string;
@@ -131,6 +133,33 @@ export default function DashboardLayout({ children, activePage, setActivePage }:
     await signOut();
   };
 
+  const { t, lang, setLang } = useDashboardI18n();
+
+  const NAV_KEYS: Record<string, string> = {
+    overview: "nav.overview",
+    conversations: "nav.conversations",
+    "ai-agent": "nav.aiAgent",
+    analytics: "nav.analytics",
+    intelligence: "nav.intelligence",
+    widget: "nav.widget",
+    catalog: "nav.catalog",
+    listing: "nav.listing",
+    knowledge: "nav.knowledge",
+    templates: "nav.templates",
+    integrations: "nav.integrations",
+    flows: "nav.flows",
+    unanswered: "nav.unanswered",
+    visitors: "nav.visitors",
+    monitoring: "nav.monitoring",
+    team: "nav.team",
+    booking: "nav.booking",
+    partner: "nav.partner",
+    billing: "nav.billing",
+    settings: "nav.settings",
+    docs: "nav.docs",
+  };
+  const navLabel = (id: string, fallback: string) => t(NAV_KEYS[id] || fallback);
+
   const planLabel = currentPlan === "free" ? "FREE" : currentPlan === "starter" ? "STARTER" : currentPlan === "growth" ? "GROWTH" : "ENTERPRISE";
   const planColor = currentPlan === "free" ? "text-gray-400 bg-gray-500/20" : currentPlan === "starter" ? "text-blue-400 bg-blue-500/20" : currentPlan === "growth" ? "text-lemon-green bg-lemon-green/20" : "text-amber-400 bg-amber-500/20";
   const usagePct = Math.min(100, Math.round((usage.conversations / usage.limit) * 100));
@@ -192,42 +221,42 @@ export default function DashboardLayout({ children, activePage, setActivePage }:
         </div>
 
         <nav className="flex-1 overflow-y-auto px-3 py-4 hide-scrollbar">
-          <p className="text-[10px] font-bold text-gray-600 uppercase tracking-widest px-3 mb-3">Main</p>
+          <p className="text-[10px] font-bold text-gray-600 uppercase tracking-widest px-3 mb-3">{t("nav.main")}</p>
            {mainItems.map((item: any) => (
             <NavItem
               key={item.id}
               icon={item.icon}
-              label={item.label}
+              label={navLabel(item.id, item.label)}
               isActive={activePage === item.id}
               onClick={() => { setActivePage(item.id); setIsSidebarOpen(false); }}
               locked={item.feature ? isLocked(item.feature) : false}
-              upgradeLabel={item.feature && isLocked(item.feature) ? "UPGRADE" : undefined}
+              upgradeLabel={item.feature && isLocked(item.feature) ? t("nav.upgrade") : undefined}
             />
           ))}
           <div className="my-3 border-t border-white/10" />
-          <p className="text-[10px] font-bold text-gray-600 uppercase tracking-widest px-3 mb-3">Configuration</p>
+          <p className="text-[10px] font-bold text-gray-600 uppercase tracking-widest px-3 mb-3">{t("nav.configuration")}</p>
           {configItems.map((item: any) => (
             <NavItem
               key={item.id}
               icon={item.icon}
-              label={item.label}
+              label={navLabel(item.id, item.label)}
               isActive={activePage === item.id}
               onClick={() => { setActivePage(item.id); setIsSidebarOpen(false); }}
               locked={item.feature ? isLocked(item.feature) : false}
-              upgradeLabel={item.feature && isLocked(item.feature) ? "UPGRADE" : undefined}
+              upgradeLabel={item.feature && isLocked(item.feature) ? t("nav.upgrade") : undefined}
             />
           ))}
           <div className="my-3 border-t border-white/10" />
-          <p className="text-[10px] font-bold text-gray-600 uppercase tracking-widest px-3 mb-3">Management</p>
+          <p className="text-[10px] font-bold text-gray-600 uppercase tracking-widest px-3 mb-3">{t("nav.management")}</p>
           {managementItems.map((item: any) => (
             <NavItem
               key={item.id}
               icon={item.icon}
-              label={item.label}
+              label={navLabel(item.id, item.label)}
               isActive={activePage === item.id}
               onClick={() => { setActivePage(item.id); setIsSidebarOpen(false); }}
               locked={item.feature ? isLocked(item.feature) : false}
-              upgradeLabel={item.feature && isLocked(item.feature) ? "UPGRADE" : undefined}
+              upgradeLabel={item.feature && isLocked(item.feature) ? t("nav.upgrade") : undefined}
             />
           ))}
         </nav>
@@ -267,7 +296,7 @@ export default function DashboardLayout({ children, activePage, setActivePage }:
               )}
             >
               <span className={cn("w-1.5 h-1.5 rounded-full", isOnline ? "bg-green-400" : "bg-gray-400")} />
-              {isOnline ? "Online" : "Offline"}
+              {isOnline ? t("common.online") : t("common.offline")}
             </button>
             <div className="flex items-center gap-1 text-[10px] text-gray-500">
               <Clock className="w-3 h-3" />
@@ -279,7 +308,7 @@ export default function DashboardLayout({ children, activePage, setActivePage }:
             className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-gray-500 hover:text-white hover:bg-white/5 transition"
           >
             <LogOut className="w-4 h-4" />
-            Sign Out
+            {t("header.signOut")}
           </button>
         </div>
       </aside>
@@ -294,13 +323,26 @@ export default function DashboardLayout({ children, activePage, setActivePage }:
               <Search className="w-4 h-4 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search conversations, customers..."
+                placeholder={t("header.search")}
                 className="bg-transparent text-sm text-gray-700 outline-none w-full placeholder-gray-400"
               />
             </div>
           </div>
           <div className="flex items-center gap-3">
             <NotificationBell />
+            <div className="hidden md:flex items-center gap-2">
+              <Globe className="w-4 h-4 text-gray-400" />
+              <select
+                value={lang}
+                onChange={(e) => setLang(e.target.value as DashboardLang)}
+                aria-label={t("header.language")}
+                className="bg-gray-100 text-sm text-gray-700 outline-none cursor-pointer py-1.5 pl-2 pr-1 rounded-lg"
+              >
+                {DASHBOARD_LANGS.map((l) => (
+                  <option key={l} value={l}>{NATIVE_LANGS[l]}</option>
+                ))}
+              </select>
+            </div>
             <div className="relative" ref={avatarRef}>
               <button
                 onClick={() => setAvatarOpen(!avatarOpen)}
@@ -316,7 +358,7 @@ export default function DashboardLayout({ children, activePage, setActivePage }:
                   </div>
                   <div className="px-4 py-3">
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs text-muted-foreground">Usage</span>
+                      <span className="text-xs text-muted-foreground">{t("header.usage")}</span>
                       <span className="text-xs font-medium text-dark-navy">{usage.conversations}/{usage.limit}</span>
                     </div>
                     <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
@@ -329,7 +371,7 @@ export default function DashboardLayout({ children, activePage, setActivePage }:
                       className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition"
                     >
                       <LogOut className="w-4 h-4" />
-                      Sign Out
+                      {t("header.signOut")}
                     </button>
                   </div>
                 </div>

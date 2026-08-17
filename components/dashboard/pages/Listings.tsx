@@ -11,6 +11,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { useDashboardI18n } from '../I18nProvider';
 
 type DraftStatus = 'queued' | 'analyzing' | 'review' | 'error';
 
@@ -44,19 +45,6 @@ type ConnectorCard = {
 };
 
 const conditionLabels = { new: 'New', like_new: 'Like new', good: 'Good', fair: 'Fair', poor: 'Poor' } as const;
-
-const LISTING_LANGUAGE_OPTIONS = [
-  { value: 'sv', label: 'Svenska' },
-  { value: 'en', label: 'English' },
-  { value: 'nl', label: 'Dutch' },
-  { value: 'de', label: 'German' },
-  { value: 'fi', label: 'Finnish' },
-  { value: 'fr', label: 'French' },
-  { value: 'es', label: 'Spanish' },
-  { value: 'it', label: 'Italian' },
-  { value: 'da', label: 'Danish' },
-  { value: 'no', label: 'Norwegian' },
-];
 
 const CATEGORIES = [
   'Bag', 'Eco Home', 'Electronics', 'General', 'Green Gadgets',
@@ -205,7 +193,7 @@ export default function ListingsAppPage() {
   const [wooForm, setWooForm] = useState({ open: false, shopUrl: '', key: '', secret: '' });
   const [hookForm, setHookForm] = useState({ open: false, name: 'My endpoint', url: '', secret: '' });
   const [shopDomain, setShopDomain] = useState('');
-  const [listingLanguage, setListingLanguage] = useState('sv');
+  const { lang } = useDashboardI18n();
 
   const loadState = async () => {
     try {
@@ -221,25 +209,7 @@ export default function ListingsAppPage() {
 
   useEffect(() => {
     void loadState();
-    void (async () => {
-      try {
-        const res = await fetch('/api/listings/language');
-        const data = await res.json();
-        if (res.ok && data.language) setListingLanguage(data.language);
-      } catch { /* keep default */ }
-    })();
   }, []);
-
-  const changeListingLanguage = async (language: string) => {
-    setListingLanguage(language);
-    try {
-      await fetch('/api/listings/language', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ language }),
-      });
-    } catch { /* preference not critical */ }
-  };
 
   const updateDraft = (id: string, update: Partial<ListingDraft>) => {
     setDrafts((current) => current.map((draft) => draft.id === id ? { ...draft, ...update } : draft));
@@ -256,7 +226,7 @@ export default function ListingsAppPage() {
       const analysisResponse = await fetch('/api/listings/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageDataUrl: analysisImage, language: listingLanguage }),
+        body: JSON.stringify({ imageDataUrl: analysisImage, language: lang }),
         signal: controller.signal,
       });
       clearTimeout(timeout);
@@ -643,19 +613,6 @@ export default function ListingsAppPage() {
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-3">
           <h2 className="text-2xl font-bold text-dark-navy">Listings</h2>
-          <label className="flex items-center gap-2 text-sm text-muted-foreground" htmlFor="listing-language">
-            AI Listing Language
-            <select
-              id="listing-language"
-              value={listingLanguage}
-              onChange={(event) => void changeListingLanguage(event.target.value)}
-              className="rounded-lg border border-border bg-background px-2.5 py-1.5 text-sm font-medium text-dark-navy focus:outline-none focus:ring-2 focus:ring-primary/30"
-            >
-              {LISTING_LANGUAGE_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>{option.label}</option>
-              ))}
-            </select>
-          </label>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" className="gap-2" onClick={() => void loadState()}>

@@ -25,6 +25,7 @@ import Templates from "./pages/Templates";
 import Intelligence from "./pages/Intelligence";
 import KnowledgeBase from "./KnowledgeBase";
 import Listings from "./pages/Listings";
+import { DashboardI18nProvider } from "./I18nProvider";
 
 export default function Dashboard() {
   const [activePage, setActivePageState] = useState("overview");
@@ -109,10 +110,12 @@ export default function Dashboard() {
   };
 
   return (
-    <DashboardContext.Provider value={{ activePage, setActivePage }}>
-      <DashboardLayout activePage={activePage} setActivePage={setActivePage}>
-        {renderPage()}
-      </DashboardLayout>
-    </DashboardContext.Provider>
+    <DashboardI18nProvider>
+      <DashboardContext.Provider value={{ activePage, setActivePage }}>
+        <DashboardLayout activePage={activePage} setActivePage={setActivePage}>
+          {renderPage()}
+        </DashboardLayout>
+      </DashboardContext.Provider>
+    </DashboardI18nProvider>
   );
 }
