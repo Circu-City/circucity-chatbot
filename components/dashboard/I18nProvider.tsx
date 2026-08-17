@@ -6,7 +6,7 @@ import { DASHBOARD_LANGS, DashboardLang, translate } from "@/lib/dashboard-i18n"
 interface DashboardI18nContextValue {
   lang: DashboardLang;
   setLang: (lang: DashboardLang) => void;
-  t: (key: string) => string;
+  t: (key: string, vars?: Record<string, string>) => string;
 }
 
 const DashboardI18nContext = createContext<DashboardI18nContextValue>({
@@ -38,7 +38,7 @@ export function DashboardI18nProvider({ children }: { children: React.ReactNode 
     }).catch(() => {});
   }, []);
 
-  const t = useCallback((key: string) => translate(lang, key), [lang]);
+  const t = useCallback((key: string, vars?: Record<string, string>) => translate(lang, key, vars), [lang]);
 
   return (
     <DashboardI18nContext.Provider value={{ lang, setLang, t }}>

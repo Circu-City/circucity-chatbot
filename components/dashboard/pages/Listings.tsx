@@ -193,7 +193,7 @@ export default function ListingsAppPage() {
   const [wooForm, setWooForm] = useState({ open: false, shopUrl: '', key: '', secret: '' });
   const [hookForm, setHookForm] = useState({ open: false, name: 'My endpoint', url: '', secret: '' });
   const [shopDomain, setShopDomain] = useState('');
-  const { lang } = useDashboardI18n();
+  const { lang, t } = useDashboardI18n();
 
   const loadState = async () => {
     try {
@@ -612,12 +612,12 @@ export default function ListingsAppPage() {
     <Wrapper>
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-3">
-          <h2 className="text-2xl font-bold text-dark-navy">Listings</h2>
+          <h2 className="text-2xl font-bold text-dark-navy">{t("lst.listings")}</h2>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" className="gap-2" onClick={() => void loadState()}>
             <RefreshCw className="w-4 h-4" />
-            Sync
+            {t("lst.sync")}
           </Button>
           {reviewed.length > 0 && (
             <>
@@ -626,15 +626,15 @@ export default function ListingsAppPage() {
               </Button>
               <Button variant="outline" size="sm" className="gap-2" onClick={() => void exportJson()}>
                 <FileJson className="w-4 h-4" />
-                Export JSON
+                {t("lst.exportJson")}
               </Button>
               <Button variant="outline" size="sm" className="gap-2" onClick={() => void exportExcel()}>
                 <FileSpreadsheet className="w-4 h-4" />
-                Export Excel
+                {t("lst.exportExcel")}
               </Button>
               <Button variant="outline" size="sm" className="gap-2" onClick={() => void exportPdf()}>
                 <FileText className="w-4 h-4" />
-                Export PDF
+                {t("lst.exportPdf")}
               </Button>
             </>
           )}
@@ -646,21 +646,21 @@ export default function ListingsAppPage() {
           <div className="flex items-center gap-3 min-w-0">
             <span className="p-2 rounded-lg bg-amber-100 text-amber-700 shrink-0"><Zap className="w-4 h-4" /></span>
             <div>
-              <p className="text-sm font-semibold text-dark-navy">Free plan — analyse to try, upgrade Gavriel to publish</p>
+              <p className="text-sm font-semibold text-dark-navy">{t("lst.freePlanTitle")}</p>
               <p className="text-xs text-muted-foreground">
-                You can analyse up to {quota?.limit}x per month for free. Publishing real drafts to connected stores requires Gavriel Listing AI — its own plan (from €29/month), separate from your chatbot subscription.
+                {t("lst.freePlanDesc", { limit: String(quota?.limit ?? '') })}
               </p>
             </div>
           </div>
-          <Button variant="primary" size="sm" className="shrink-0" onClick={() => void upgrade('growth')}>Unlock Gavriel — €29/mo</Button>
+          <Button variant="primary" size="sm" className="shrink-0" onClick={() => void upgrade('growth')}>{t("lst.unlockGavriel")}</Button>
         </div>
       )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="AI listings used" value={`${quota?.used ?? 0} of ${quota?.limit ?? '∞'}`} hint={quota ? `${quota.plan} plan` : undefined} icon={Zap} />
-        <StatCard label="Captured this session" value={String(drafts.length)} icon={Camera} />
-        <StatCard label="Awaiting review" value={String(pendingReview)} icon={Sparkles} />
-        <StatCard label="Published" value={String(state?.history.length ?? 0)} icon={Archive} />
+        <StatCard label={t("lst.aiListingsUsed")} value={`${quota?.used ?? 0} ${t("lst.of")} ${quota?.limit ?? '∞'}`} hint={quota ? `${quota.plan} plan` : undefined} icon={Zap} />
+        <StatCard label={t("lst.capturedThisSession")} value={String(drafts.length)} icon={Camera} />
+        <StatCard label={t("lst.awaitingReview")} value={String(pendingReview)} icon={Sparkles} />
+        <StatCard label={t("lst.published")} value={String(state?.history.length ?? 0)} icon={Archive} />
       </div>
 
       <Card className="border-border shadow-sm overflow-hidden">
@@ -668,16 +668,16 @@ export default function ListingsAppPage() {
           <div className="flex items-center gap-3">
             <div className="p-2 bg-primary/10 rounded-lg text-primary"><Camera className="w-5 h-5" /></div>
             <div>
-              <h3 className="font-bold text-dark-navy">Capture the next item</h3>
-              <p className="text-xs text-muted-foreground">Keep the full item visible in even light for the best AI result.</p>
+              <h3 className="font-bold text-dark-navy">{t("lst.captureNextItem")}</h3>
+              <p className="text-xs text-muted-foreground">{t("lst.captureHint")}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <Button size="sm" className="gap-2" onClick={() => cameraRef.current?.click()}>
-              <Camera className="w-4 h-4" /> Open camera
+              <Camera className="w-4 h-4" /> {t("lst.openCamera")}
             </Button>
             <Button variant="outline" size="sm" className="gap-2" onClick={() => galleryRef.current?.click()}>
-              <Images className="w-4 h-4" /> Select photos
+              <Images className="w-4 h-4" /> {t("lst.selectPhotos")}
             </Button>
           </div>
         </div>
@@ -708,9 +708,9 @@ export default function ListingsAppPage() {
         <Card className="border-border shadow-sm overflow-hidden">
           <div className="flex flex-col items-center py-16 text-center px-6">
             <div className="p-3 bg-primary/10 rounded-full text-primary mb-4"><Camera className="w-8 h-8" /></div>
-            <h4 className="font-bold text-dark-navy mb-1">No items captured yet</h4>
-            <p className="text-sm text-muted-foreground mb-4 max-w-md">Open your camera or pick photos to start your listing queue.</p>
-            <Button size="sm" onClick={() => cameraRef.current?.click()}>Open camera</Button>
+            <h4 className="font-bold text-dark-navy mb-1">{t("lst.noItemsCaptured")}</h4>
+            <p className="text-sm text-muted-foreground mb-4 max-w-md">{t("lst.noItemsHint")}</p>
+            <Button size="sm" onClick={() => cameraRef.current?.click()}>{t("lst.openCamera")}</Button>
           </div>
         </Card>
       ) : (
@@ -734,7 +734,7 @@ export default function ListingsAppPage() {
         <div className="mb-4 flex items-center gap-3">
           <div className="p-2 bg-primary/10 rounded-lg text-primary"><Cable className="w-5 h-5" /></div>
           <div>
-            <h3 className="font-bold text-dark-navy">Connect your stores</h3>
+            <h3 className="font-bold text-dark-navy">{t("lst.connectStores")}</h3>
             <p className="text-xs text-muted-foreground">Live connectors publish real drafts to your accounts. Analysed photos stay in this workspace.</p>
           </div>
         </div>
@@ -768,7 +768,7 @@ export default function ListingsAppPage() {
                         className="h-8 text-xs"
                       />
                       <Button size="sm" className="w-full gap-1.5" onClick={() => void connectOAuth('shopify')} disabled={connecting === 'shopify'}>
-                        {connecting === 'shopify' ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Connecting…</> : <>Connect store</>}
+                        {connecting === 'shopify' ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Connecting…</> : <>{t("lst.connectStore")}</>}
                       </Button>
                     </>
                   )}
@@ -784,12 +784,12 @@ export default function ListingsAppPage() {
                   )}
                   {!connected && connector.id === 'woocommerce' && (
                     <Button size="sm" className="w-full" onClick={() => { setWooForm({ ...wooForm, open: !wooForm.open }); setHookForm({ ...hookForm, open: false }); setConnectError(''); }}>
-                      Enter REST credentials
+                      {t("lst.enterRestCredentials")}
                     </Button>
                   )}
                   {!connected && connector.id === 'webhook' && (
                     <Button size="sm" className="w-full" onClick={() => { setHookForm({ ...hookForm, open: !hookForm.open }); setWooForm({ ...wooForm, open: false }); setConnectError(''); }}>
-                      Configure endpoint
+                      {t("lst.configureEndpoint")}
                     </Button>
                   )}
                   {connected && connector.id === 'webhook' && state?.webhookUrl && (
@@ -807,7 +807,7 @@ export default function ListingsAppPage() {
                       >
                         Publish
                       </Button>
-                      <Button variant="ghost" size="sm" onClick={() => void disconnect(connector.id)} className="text-muted-foreground hover:text-red-600" title="Disconnect">
+                      <Button variant="ghost" size="sm" onClick={() => void disconnect(connector.id)} className="text-muted-foreground hover:text-red-600" title={t("lst.disconnect")}>
                         <Trash2 className="w-3.5 h-3.5" />
                       </Button>
                     </div>
@@ -823,11 +823,11 @@ export default function ListingsAppPage() {
             <p className="mt-1 text-xs text-muted-foreground">Create an API key in your WP admin (WooCommerce → Settings → Advanced → REST API, read/write) and paste it here.</p>
             <div className="mt-3 grid gap-3 md:grid-cols-3">
               <Input value={wooForm.shopUrl} onChange={(e) => setWooForm({ ...wooForm, shopUrl: e.target.value })} placeholder="https://your-store.com" />
-              <Input value={wooForm.key} onChange={(e) => setWooForm({ ...wooForm, key: e.target.value })} placeholder="Consumer key" />
-              <Input value={wooForm.secret} onChange={(e) => setWooForm({ ...wooForm, secret: e.target.value })} placeholder="Consumer secret" />
+              <Input value={wooForm.key} onChange={(e) => setWooForm({ ...wooForm, key: e.target.value })} placeholder={t("lst.consumerKey")} />
+              <Input value={wooForm.secret} onChange={(e) => setWooForm({ ...wooForm, secret: e.target.value })} placeholder={t("lst.consumerSecret")} />
             </div>
             <div className="mt-3 flex gap-3">
-              <Button size="sm" onClick={() => void saveWoo()}>Verify & connect</Button>
+              <Button size="sm" onClick={() => void saveWoo()}>{t("lst.verifyConnect")}</Button>
               <Button variant="outline" size="sm" onClick={() => setWooForm({ ...wooForm, open: false })}>Cancel</Button>
             </div>
           </Card>
@@ -837,12 +837,12 @@ export default function ListingsAppPage() {
             <h3 className="font-bold text-dark-navy">Configure webhook</h3>
             <p className="mt-1 text-xs text-muted-foreground">We POST the full listing as JSON (with an optional HMAC-SHA256 X-CircuCity-Signature header when a secret is set).</p>
             <div className="mt-3 grid gap-3 md:grid-cols-3">
-              <Input value={hookForm.name} onChange={(e) => setHookForm({ ...hookForm, name: e.target.value })} placeholder="Endpoint name" />
+              <Input value={hookForm.name} onChange={(e) => setHookForm({ ...hookForm, name: e.target.value })} placeholder={t("lst.endpointName")} />
               <Input value={hookForm.url} onChange={(e) => setHookForm({ ...hookForm, url: e.target.value })} placeholder="https://your-endpoint.com/webhook" />
               <Input value={hookForm.secret} onChange={(e) => setHookForm({ ...hookForm, secret: e.target.value })} placeholder="Signing secret (optional)" />
             </div>
             <div className="mt-3 flex gap-3">
-              <Button size="sm" onClick={() => void saveWebhook()}>Save webhook</Button>
+              <Button size="sm" onClick={() => void saveWebhook()}>{t("lst.saveWebhook")}</Button>
               <Button variant="outline" size="sm" onClick={() => setHookForm({ ...hookForm, open: false })}>Cancel</Button>
             </div>
           </Card>
@@ -852,16 +852,16 @@ export default function ListingsAppPage() {
       {state && state.history.length > 0 && (
         <Card className="border-border shadow-sm overflow-hidden">
           <div className="p-6 border-b border-border flex items-center justify-between">
-            <div className="flex items-center gap-2 font-bold text-dark-navy"><Archive className="w-5 h-5 text-primary" /> Published listings</div>
+            <div className="flex items-center gap-2 font-bold text-dark-navy"><Archive className="w-5 h-5 text-primary" /> {t("lst.publishedListings")}</div>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left">
               <thead className="bg-muted/50 text-[10px] uppercase tracking-widest text-muted-foreground font-bold">
                 <tr>
-                  <th className="px-6 py-3">Title</th>
+                  <th className="px-6 py-3">{t("lst.title")}</th>
                   <th className="px-6 py-3">Platform</th>
-                  <th className="px-6 py-3">Status</th>
-                  <th className="px-6 py-3">Published</th>
+                  <th className="px-6 py-3">{t("common.status")}</th>
+                  <th className="px-6 py-3">{t("lst.published")}</th>
                   <th className="px-6 py-3 text-right">Link</th>
                 </tr>
               </thead>
@@ -952,14 +952,16 @@ function DraftCard({ draft, index, onUpdate, onRemove, onCopyCsv, onPublish, onR
   onPublish: () => void;
   onRetry: () => void;
 }) {
+  const { t } = useDashboardI18n();
+  const COND_KEYS: Record<string, string> = { new: 'lst.condNew', like_new: 'lst.condLikeNew', good: 'lst.condGood', fair: 'lst.condFair', poor: 'lst.condPoor' };
   const processing = draft.status === 'queued' || draft.status === 'analyzing';
   return (
     <Card className="border-border shadow-sm overflow-hidden">
       <div className="grid md:grid-cols-[220px_1fr]">
         <div className="relative min-h-56 bg-muted">
-          <img src={draft.previewUrl} alt="Captured product" className="absolute inset-0 h-full w-full object-cover" />
-          <span className="absolute left-3 top-3 rounded-full bg-dark-navy/80 px-2.5 py-1 text-xs font-bold text-white">Item {index}</span>
-          <Button variant="ghost" size="sm" onClick={onRemove} className="absolute right-3 top-3 rounded-full bg-white/90 p-2 text-red-600 shadow hover:bg-white hover:text-red-700 h-8 w-8" aria-label="Remove item">
+          <img src={draft.previewUrl} alt={t("lst.capturedProduct")} className="absolute inset-0 h-full w-full object-cover" />
+          <span className="absolute left-3 top-3 rounded-full bg-dark-navy/80 px-2.5 py-1 text-xs font-bold text-white">{t("lst.title")} {index}</span>
+          <Button variant="ghost" size="sm" onClick={onRemove} className="absolute right-3 top-3 rounded-full bg-white/90 p-2 text-red-600 shadow hover:bg-white hover:text-red-700 h-8 w-8" aria-label={t("lst.removeItem")}>
             <Trash2 className="w-4 h-4" />
           </Button>
         </div>
@@ -967,21 +969,21 @@ function DraftCard({ draft, index, onUpdate, onRemove, onCopyCsv, onPublish, onR
           {processing && (
             <div className="flex min-h-48 flex-col items-center justify-center text-center">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              <h4 className="mt-3 font-bold text-dark-navy">{draft.status === 'queued' ? 'Waiting in queue…' : 'AI is building the listing…'}</h4>
-              <p className="mt-1 text-xs text-muted-foreground">You can take the next photo now.</p>
+              <h4 className="mt-3 font-bold text-dark-navy">{draft.status === 'queued' ? t("lst.waiting") : t("lst.building")}</h4>
+              <p className="mt-1 text-xs text-muted-foreground">{t("lst.takeNextPhoto")}</p>
             </div>
           )}
           {draft.status === 'error' && (
             <div className="flex min-h-48 flex-col items-center justify-center text-center">
               <XCircle className="h-9 w-9 text-red-500" />
-              <h4 className="mt-3 font-bold text-red-600">Could not process this item</h4>
+              <h4 className="mt-3 font-bold text-red-600">{t("lst.couldNotProcess")}</h4>
               <p className="mt-1 max-w-md text-sm text-muted-foreground">{draft.error}</p>
               <div className="mt-4 flex gap-2">
                 <Button variant="outline" size="sm" onClick={onRetry} className="gap-2">
-                  <RefreshCw className="w-4 h-4" /> Retry
+                  <RefreshCw className="w-4 h-4" /> {t("lst.retry")}
                 </Button>
                 <Button variant="ghost" size="sm" onClick={onRemove} className="gap-2 text-red-600 hover:bg-red-50">
-                  <Trash2 className="w-4 h-4" /> Remove
+                  <Trash2 className="w-4 h-4" /> {t("common.delete")}
                 </Button>
               </div>
             </div>
@@ -990,25 +992,25 @@ function DraftCard({ draft, index, onUpdate, onRemove, onCopyCsv, onPublish, onR
             <div className="space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex items-center gap-2 text-sm font-bold text-primary">
-                  <Sparkles className="w-4 h-4" /> AI draft — review required
+                  <Sparkles className="w-4 h-4" /> {t("lst.aiDraftReview")}
                 </div>
                 <div className="flex items-center gap-2">
                   {draft.priceGrounded && (
                     <Badge className="bg-blue-100 text-blue-700 border-blue-200">
-                      <Globe2 className="w-3 h-3 mr-1" /> Price checked online
+                      <Globe2 className="w-3 h-3 mr-1" /> {t("lst.priceCheckedOnline")}
                     </Badge>
                   )}
-                  <Button variant="outline" size="sm" className="gap-1 px-2.5" onClick={onCopyCsv} title="Copy this row to the clipboard">
-                    <FileSpreadsheet className="w-3 h-3" /> Copy CSV row
+                  <Button variant="outline" size="sm" className="gap-1 px-2.5" onClick={onCopyCsv} title={t("lst.copyToClipboard")}>
+                    <FileSpreadsheet className="w-3 h-3" /> {t("lst.copyCsvRow")}
                   </Button>
                 </div>
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
-                <Field label="Title" value={draft.title} maxLength={80} onChange={(title) => onUpdate({ title, reviewed: false })} />
-                <Field label="Price (SEK)" value={draft.price} type="number" onChange={(price) => onUpdate({ price, reviewed: false })} />
+                <Field label={t("lst.title")} value={draft.title} maxLength={80} onChange={(title) => onUpdate({ title, reviewed: false })} />
+                <Field label={t("lst.priceSek")} value={draft.price} type="number" onChange={(price) => onUpdate({ price, reviewed: false })} />
               </div>
               <div>
-                <label className="mb-1.5 block text-xs text-muted-foreground font-medium">Description</label>
+                <label className="mb-1.5 block text-xs text-muted-foreground font-medium">{t("common.description")}</label>
                 <textarea
                   value={draft.description}
                   maxLength={300}
@@ -1019,21 +1021,21 @@ function DraftCard({ draft, index, onUpdate, onRemove, onCopyCsv, onPublish, onR
               </div>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <div>
-                  <label className="mb-1.5 block text-xs text-muted-foreground font-medium">Category</label>
+                  <label className="mb-1.5 block text-xs text-muted-foreground font-medium">{t("common.category")}</label>
                   <select value={draft.category} onChange={(event) => onUpdate({ category: event.target.value, reviewed: false })} className="w-full rounded-lg border border-input bg-transparent px-3 py-2.5 text-sm text-dark-navy shadow-sm outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                    <option value="" disabled>{draft.category ? `AI suggested "${draft.category}" — pick a category` : 'Select category'}</option>
+                    <option value="" disabled>{draft.category ? `AI suggested "${draft.category}" — ${t("lst.selectCategory")}` : t("lst.selectCategory")}</option>
                     {CATEGORIES.map((cat) => <option key={cat} value={cat}>{cat}</option>)}
                   </select>
                 </div>
-                <Field label="Weight (kg)" value={draft.weight} type="number" step="0.1" onChange={(weight) => onUpdate({ weight, reviewed: false })} />
+                <Field label={t("lst.weightKg")} value={draft.weight} type="number" step="0.1" onChange={(weight) => onUpdate({ weight, reviewed: false })} />
                 <div>
-                  <label className="mb-1.5 block text-xs text-muted-foreground font-medium">Condition</label>
+                  <label className="mb-1.5 block text-xs text-muted-foreground font-medium">{t("lst.condition")}</label>
                   <select value={draft.condition} onChange={(event) => onUpdate({ condition: event.target.value as ListingDraft['condition'], reviewed: false })} className="w-full rounded-lg border border-input bg-transparent px-3 py-2.5 text-sm text-dark-navy shadow-sm outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                    {Object.entries(conditionLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+                    {Object.entries(conditionLabels).map(([value, label]) => <option key={value} value={value}>{t(COND_KEYS[value])}</option>)}
                   </select>
                 </div>
-                <Field label="Est. age" value={draft.estimatedAge} onChange={(estimatedAge) => onUpdate({ estimatedAge, reviewed: false })} />
-                <Field label="Stock" value={draft.quantity} type="number" min={1} step={1} onChange={(quantity) => onUpdate({ quantity, reviewed: false })} />
+                <Field label={t("lst.estAge")} value={draft.estimatedAge} onChange={(estimatedAge) => onUpdate({ estimatedAge, reviewed: false })} />
+                <Field label={t("lst.stock")} value={draft.quantity} type="number" min={1} step={1} onChange={(quantity) => onUpdate({ quantity, reviewed: false })} />
               </div>
               {Object.keys(draft.attributes).length > 0 && (
                 <div className="flex flex-wrap gap-2">
@@ -1047,22 +1049,22 @@ function DraftCard({ draft, index, onUpdate, onRemove, onCopyCsv, onPublish, onR
               {Number(draft.co2Saved) > 0 && (
                 <div className="p-4 rounded-xl bg-green-500/10 border border-green-500/30">
                   <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-green-700">
-                    <Archive className="w-4 h-4" /> Resale impact
+                    <Archive className="w-4 h-4" /> {t("lst.resaleImpact")}
                   </p>
-                  <p className="mt-1 text-sm font-bold text-green-800">{draft.co2Saved} kg CO₂e kept out of production by reselling this item</p>
+                  <p className="mt-1 text-sm font-bold text-green-800">{t("lst.co2KeptOut", { co2: draft.co2Saved })}</p>
                 </div>
               )}
               <div className="flex flex-col justify-between gap-3 border-t border-border pt-4 sm:flex-row sm:items-center">
                 <label className="flex min-h-11 cursor-pointer items-center gap-3 rounded-lg bg-muted/40 px-4 py-2 text-sm font-medium text-dark-navy">
                   <input type="checkbox" checked={draft.reviewed} onChange={(event) => onUpdate({ reviewed: event.target.checked })} className="h-5 w-5 accent-[#A3E635]" />
-                  I reviewed this listing and confirm it is accurate
+                  {t("lst.reviewConfirm")}
                 </label>
                 <div className="flex items-center gap-3">
                   <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200">
-                    <Check className="w-3 h-3 mr-1" /> Ready
+                    <Check className="w-3 h-3 mr-1" /> {t("lst.ready")}
                   </Badge>
                   <Button size="sm" className="gap-2" onClick={onPublish} disabled={!draft.reviewed}>
-                    <Send className="w-4 h-4" /> Publish
+                    <Send className="w-4 h-4" /> {t("lst.publish")}
                   </Button>
                 </div>
               </div>

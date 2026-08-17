@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { MessageSquare, Smartphone, Palette, MessageCircle, Check, Code, Copy, Globe, ShieldCheck, Settings, Save, ExternalLink, Bot, Sparkles, Eye, Loader2, QrCode, Link2, Unlink, AlertCircle, CheckCircle2, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useDashboardI18n } from "@/components/dashboard/I18nProvider";
 
 function Wrapper({ children }: { children: React.ReactNode }) {
   return (
@@ -40,6 +41,7 @@ interface EmbedSettings {
 
 
 export default function ChatWidget() {
+  const { t } = useDashboardI18n();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -138,11 +140,11 @@ export default function ChatWidget() {
   const getChannel = (type: string) => channels.find(c => c.type === type);
 
   const channelStatusBadge = (channel?: Channel) => {
-    if (!channel) return <Badge variant="outline" className="text-[10px]">Not Connected</Badge>;
+    if (!channel) return <Badge variant="outline" className="text-[10px]">{t("widget.notConnected")}</Badge>;
     switch (channel.status) {
-      case "connected": return <Badge className="bg-green-500 text-[10px]">Connected</Badge>;
-      case "error": return <Badge variant="destructive" className="text-[10px]">Error</Badge>;
-      default: return <Badge variant="outline" className="text-[10px]">Disconnected</Badge>;
+      case "connected": return <Badge className="bg-green-500 text-[10px]">{t("common.connected")}</Badge>;
+      case "error": return <Badge variant="destructive" className="text-[10px]">{t("widget.error")}</Badge>;
+      default: return <Badge variant="outline" className="text-[10px]">{t("common.disconnected")}</Badge>;
     }
   };
 
@@ -165,16 +167,16 @@ export default function ChatWidget() {
       ) : (
         <>
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-dark-navy">Chat Widget</h2>
+            <h2 className="text-2xl font-bold text-dark-navy">{t("widget.title")}</h2>
             <div className="flex items-center gap-2">
               {error && <p className="text-xs text-red-500 max-w-[200px] truncate">{error}</p>}
               <Button variant="outline" size="sm" className="gap-2" onClick={copySnippet}>
                 {copied ? <Check className="w-4 h-4" /> : <Code className="w-4 h-4" />}
-                {copied ? "Copied!" : "Get Snippet"}
+                {copied ? t("widget.copied") : t("widget.getSnippet")}
               </Button>
               <Button size="sm" className="gap-2" onClick={handleSave} disabled={saving}>
                 <Save className="w-4 h-4" />
-                {saving ? "Saving..." : "Save"}
+                {saving ? t("widget.saving") : t("widget.save")}
               </Button>
             </div>
           </div>
@@ -184,7 +186,7 @@ export default function ChatWidget() {
               <Card className="border-border shadow-sm">
                 <div className="p-6 border-b border-border flex items-center gap-2">
                   <Link2 className="w-4 h-4 text-primary" />
-                  <h3 className="font-semibold text-dark-navy">Channel Verification</h3>
+                  <h3 className="font-semibold text-dark-navy">{t("widget.channelVerification")}</h3>
                 </div>
                 <CardContent className="p-6 space-y-4">
                   {(Object.keys(channelConfig) as Array<keyof typeof channelConfig>).map((type) => {
@@ -214,7 +216,7 @@ export default function ChatWidget() {
                               disabled={disconnecting === channel.id}
                             >
                               {disconnecting === channel.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Unlink className="w-3 h-3" />}
-                              Disconnect
+                              {t("widget.disconnect")}
                             </Button>
                           ) : (
                             <Button
@@ -224,7 +226,7 @@ export default function ChatWidget() {
                               disabled={connecting === type}
                             >
                               {connecting === type ? <Loader2 className="w-3 h-3 animate-spin" /> : <QrCode className="w-3 h-3" />}
-                              {type === "whatsapp" ? "QR Code" : "Connect"}
+                              {type === "whatsapp" ? t("widget.qrCode") : t("widget.connect")}
                             </Button>
                           )}
                         </div>
@@ -237,23 +239,23 @@ export default function ChatWidget() {
               <Card className="border-border shadow-sm">
                 <div className="p-6 border-b border-border flex items-center gap-2">
                   <Bot className="w-4 h-4 text-primary" />
-                  <h3 className="font-semibold text-dark-navy">Cira - AI Personality</h3>
+                  <h3 className="font-semibold text-dark-navy">{t("widget.personality")}</h3>
                 </div>
                 <CardContent className="p-6 space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <span className="text-xs font-medium text-dark-navy">Bot Name</span>
+                      <span className="text-xs font-medium text-dark-navy">{t("widget.botName")}</span>
                       <Input value={settings.botName || ""} onChange={(e) => updateSetting("botName", e.target.value)} className="h-9 text-sm" placeholder="Cira" />
                     </div>
                     <div className="space-y-2">
-                      <span className="text-xs font-medium text-dark-navy">Welcome Message</span>
+                      <span className="text-xs font-medium text-dark-navy">{t("widget.welcomeMessage")}</span>
                       <textarea value={settings.welcomeMessage || ""} onChange={(e) => updateSetting("welcomeMessage", e.target.value)} rows={3} className="w-full px-3 py-2 rounded-lg border border-border text-sm bg-background resize-none" />
                     </div>
                   </div>
                   <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-border">
                     <div>
-                      <p className="text-sm font-medium text-dark-navy">Voice Enabled</p>
-                      <p className="text-xs text-muted-foreground">Allow voice input in widget</p>
+                      <p className="text-sm font-medium text-dark-navy">{t("widget.voiceEnabled")}</p>
+                      <p className="text-xs text-muted-foreground">{t("widget.allowVoice")}</p>
                     </div>
                     <button type="button" className={"w-10 h-5 rounded-full transition-colors " + (settings.voiceEnabled ? "bg-primary" : "bg-gray-200")} onClick={() => updateSetting("voiceEnabled", !settings.voiceEnabled)}>
                       <div className={"w-4 h-4 rounded-full bg-white shadow-sm transition-transform " + (settings.voiceEnabled ? "translate-x-5" : "translate-x-0.5")} />
@@ -261,13 +263,13 @@ export default function ChatWidget() {
                   </div>
                   <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-border">
                     <div>
-                      <p className="text-sm font-medium text-dark-navy">Proactive Chat</p>
-                      <p className="text-xs text-muted-foreground">Auto-trigger chat after delay</p>
+                      <p className="text-sm font-medium text-dark-navy">{t("widget.proactiveChat")}</p>
+                      <p className="text-xs text-muted-foreground">{t("widget.autoTrigger")}</p>
                     </div>
                     <div className="flex items-center gap-3">
                       {settings.proactiveEnabled && (
                         <div className="flex items-center gap-1">
-                          <span className="text-xs text-muted-foreground">Delay:</span>
+                          <span className="text-xs text-muted-foreground">{t("widget.delay")}</span>
                           <Input type="number" value={settings.autoOpenDelay || 5} onChange={(e) => updateSetting("autoOpenDelay", parseInt(e.target.value) || 5)} className="w-16 h-7 text-xs" />
                           <span className="text-xs text-muted-foreground">s</span>
                         </div>
@@ -283,34 +285,34 @@ export default function ChatWidget() {
               <Card className="border-border shadow-sm">
                 <div className="p-6 border-b border-border flex items-center gap-2">
                   <Palette className="w-4 h-4 text-primary" />
-                  <h3 className="font-semibold text-dark-navy">Widget Customization</h3>
+                  <h3 className="font-semibold text-dark-navy">{t("widget.customization")}</h3>
                 </div>
                 <CardContent className="p-6 space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-2">
-                      <span className="text-xs font-medium text-dark-navy">Position</span>
+                      <span className="text-xs font-medium text-dark-navy">{t("widget.position")}</span>
                       <select value={settings.position || "bottom-right"} onChange={(e) => updateSetting("position", e.target.value)} className="w-full h-9 px-3 rounded-lg border border-border text-sm bg-background">
-                        <option value="bottom-right">Bottom Right</option>
-                        <option value="bottom-left">Bottom Left</option>
+                        <option value="bottom-right">{t("widget.bottomRight")}</option>
+                        <option value="bottom-left">{t("widget.bottomLeft")}</option>
                       </select>
                     </div>
                     <div className="space-y-2">
-                      <span className="text-xs font-medium text-dark-navy">Primary Color</span>
+                      <span className="text-xs font-medium text-dark-navy">{t("widget.primaryColor")}</span>
                       <Input type="color" value={settings.primaryColor || "#2563eb"} onChange={(e) => updateSetting("primaryColor", e.target.value)} className="h-9 p-1" />
                     </div>
                     <div className="space-y-2">
-                      <span className="text-xs font-medium text-dark-navy">Auto Open</span>
+                      <span className="text-xs font-medium text-dark-navy">{t("widget.autoOpen")}</span>
                       <select value={settings.autoOpen ? "true" : "false"} onChange={(e) => updateSetting("autoOpen", e.target.value === "true")} className="w-full h-9 px-3 rounded-lg border border-border text-sm bg-background">
-                        <option value="false">Disabled</option>
-                        <option value="true">Enabled</option>
+                        <option value="false">{t("widget.disabled")}</option>
+                        <option value="true">{t("widget.enabled")}</option>
                       </select>
                     </div>
                   </div>
                   <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-border">
                     <div>
-                      <p className="text-sm font-medium text-dark-navy">Show Branding</p>
-                      <p className="text-xs text-muted-foreground">Display "Powered by" footer</p>
-                      {(plan === "free" || !plan) && <p className="text-[10px] text-amber-600 mt-1">Permanently enabled on Free plan. Upgrade to remove.</p>}
+                      <p className="text-sm font-medium text-dark-navy">{t("widget.showBranding")}</p>
+                      <p className="text-xs text-muted-foreground">{t("widget.poweredBy")}</p>
+                      {(plan === "free" || !plan) && <p className="text-[10px] text-amber-600 mt-1">{t("widget.freePlanNote")}</p>}
                     </div>
                     <button type="button" disabled={plan === "free" || !plan} className={"w-10 h-5 rounded-full transition-colors cursor-pointer " + (settings.showBranding ? "bg-primary" : "bg-gray-200") + (plan === "free" || !plan ? " opacity-70 cursor-not-allowed" : "")} onClick={() => updateSetting("showBranding", !settings.showBranding)}>
                       <div className={"w-4 h-4 rounded-full bg-white shadow-sm transition-transform " + (settings.showBranding ? "translate-x-5" : "translate-x-0.5")} />
@@ -324,7 +326,7 @@ export default function ChatWidget() {
               <Card className="border-border shadow-sm sticky top-6">
                 <div className="p-6 border-b border-border flex items-center gap-2">
                   <Eye className="w-4 h-4 text-primary" />
-                  <h3 className="font-semibold text-dark-navy">Live Preview</h3>
+                  <h3 className="font-semibold text-dark-navy">{t("widget.livePreview")}</h3>
                 </div>
                 <CardContent className="p-6">
                   <div className="bg-gray-100 rounded-2xl p-4 h-[520px] flex flex-col">
@@ -336,7 +338,7 @@ export default function ChatWidget() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-semibold text-white truncate">{botName}</p>
-                          <p className="text-[10px] text-white/70 truncate">Reply within 1 hour</p>
+                          <p className="text-[10px] text-white/70 truncate">{t("widget.replyWithin")}</p>
                         </div>
                       </div>
 
@@ -353,7 +355,7 @@ export default function ChatWidget() {
                       <div className="p-3 border-t border-gray-100 shrink-0">
                         <div className="flex items-center gap-2">
                           <div className="flex-1 h-10 rounded-xl border border-gray-200 px-4 text-xs text-gray-400 flex items-center bg-white">
-                            Type your message...
+                            {t("widget.typeMessage")}
                           </div>
                           <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: primaryColor }}>
                             <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14M12 5l7 7-7 7" /></svg>
@@ -364,7 +366,7 @@ export default function ChatWidget() {
                         {settings.showBranding && (
                           <div className="flex items-center justify-center gap-2 text-xs text-gray-400 pt-2">
                             <Sparkles className="w-3 h-3" />
-                            <span>Powered by CircuCity AI</span>
+                            <span>{t("widget.poweredByCircuCity")}</span>
                           </div>
                         )}
                       </div>

@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { GitBranch, Plus, Play, Pause, Edit3, Trash2, Save, Copy, Check, X, ChevronDown, ChevronRight, GripVertical } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { useDashboardI18n } from "@/components/dashboard/I18nProvider";
 
 function Wrapper({ children }: { children: React.ReactNode }) {
   return (
@@ -37,6 +38,7 @@ interface Flow {
 }
 
 export default function Flows() {
+  const { t } = useDashboardI18n();
     const [flows, setFlows] = useState<Flow[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingFlow, setEditingFlow] = useState<Flow | null>(null);
@@ -97,7 +99,7 @@ export default function Flows() {
       ) : (
         <>
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-dark-navy">Flows</h2>
+            <h2 className="text-2xl font-bold text-dark-navy">{t("flows.title")}</h2>
             <Button size="sm" className="gap-2" onClick={() => { setEditingFlow({ id: "", name: "", description: "", active: true, trigger: "new_conversation", steps: [], createdAt: "", updatedAt: "" }); setShowEditor(true); }}>
               <Plus className="w-4 h-4" />
               New Flow
@@ -108,7 +110,7 @@ export default function Flows() {
             <Card className="border-border shadow-sm">
               <CardContent className="p-12 text-center">
                 <GitBranch className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-bold text-dark-navy mb-2">No flows yet</h3>
+                <h3 className="text-lg font-bold text-dark-navy mb-2">{t("flows.noFlows")}</h3>
                 <p className="text-sm text-muted-foreground mb-4">Create your first automation flow to handle conversations.</p>
                 <Button size="sm" className="gap-2" onClick={() => { setEditingFlow({ id: "", name: "", description: "", active: true, trigger: "new_conversation", steps: [], createdAt: "", updatedAt: "" }); setShowEditor(true); }}>
                   <Plus className="w-4 h-4" />
@@ -129,9 +131,9 @@ export default function Flows() {
                         <div className="flex items-center gap-2">
                           <p className="text-sm font-medium text-dark-navy">{flow.name}</p>
                           {flow.active ? (
-                            <Badge variant="default" className="bg-green-500 text-[10px]">Active</Badge>
+                            <Badge variant="default" className="bg-green-500 text-[10px]">{t("common.active")}</Badge>
                           ) : (
-                            <Badge variant="outline" className="text-[10px]">Paused</Badge>
+                            <Badge variant="outline" className="text-[10px]">{t("flows.paused")}</Badge>
                           )}
                         </div>
                         <p className="text-xs text-muted-foreground truncate">{flow.description || flow.trigger}</p>
@@ -165,31 +167,31 @@ export default function Flows() {
                 </div>
                 <div className="p-6 space-y-4">
                   <div className="space-y-2">
-                    <span className="text-xs font-medium text-dark-navy">Name</span>
+                    <span className="text-xs font-medium text-dark-navy">{t("common.name")}</span>
                     <Input value={editingFlow.name} onChange={(e) => setEditingFlow({ ...editingFlow, name: e.target.value })} className="h-9 text-sm" />
                   </div>
                   <div className="space-y-2">
-                    <span className="text-xs font-medium text-dark-navy">Description</span>
+                    <span className="text-xs font-medium text-dark-navy">{t("common.description")}</span>
                     <textarea value={editingFlow.description} onChange={(e) => setEditingFlow({ ...editingFlow, description: e.target.value })} className="text-sm" rows={3} />
                   </div>
                   <div className="space-y-2">
-                    <span className="text-xs font-medium text-dark-navy">Trigger</span>
+                    <span className="text-xs font-medium text-dark-navy">{t("flows.trigger")}</span>
                     <select className="w-full h-9 px-3 rounded-lg border border-border text-sm bg-background" value={editingFlow.trigger} onChange={(e) => setEditingFlow({ ...editingFlow, trigger: e.target.value })}>
-                      <option value="new_conversation">New Conversation</option>
-                      <option value="keyword">Keyword Match</option>
-                      <option value="inactivity">Inactivity Timeout</option>
+                      <option value="new_conversation">{t("flows.newConversation")}</option>
+                      <option value="keyword">{t("flows.keywordMatch")}</option>
+                      <option value="inactivity">{t("flows.inactivityTimeout")}</option>
                     </select>
                   </div>
                   <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-border">
                     <div>
-                      <p className="text-sm font-medium text-dark-navy">Active</p>
-                      <p className="text-xs text-muted-foreground">Enable this flow</p>
+                      <p className="text-sm font-medium text-dark-navy">{t("common.active")}</p>
+                      <p className="text-xs text-muted-foreground">{t("flows.enableFlow")}</p>
                     </div>
                     <button type="button" className={"w-10 h-5 rounded-full transition-colors " + (editingFlow.active ? "bg-primary" : "bg-gray-200")} onClick={() => setEditingFlow({ ...editingFlow, active: !editingFlow.active })}><div className={"w-4 h-4 rounded-full bg-white shadow-sm transition-transform " + (editingFlow.active ? "translate-x-5" : "translate-x-0.5")} /></button>
                   </div>
                 </div>
                 <div className="p-6 border-t border-border flex items-center justify-end gap-2">
-                  <Button variant="outline" size="sm" onClick={() => setShowEditor(false)}>Cancel</Button>
+                  <Button variant="outline" size="sm" onClick={() => setShowEditor(false)}>{t("flows.cancel")}</Button>
                   <Button size="sm" className="gap-2" onClick={handleSave} disabled={saving || !editingFlow.name}>
                     <Save className="w-4 h-4" />
                     {saving ? "Saving..." : "Save"}

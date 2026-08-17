@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useDashboard } from "@/lib/dashboard-context";
+import { useDashboardI18n } from "@/components/dashboard/I18nProvider";
 import {
   BookOpen, 
   Search, 
@@ -87,6 +88,7 @@ function Wrapper({ children }: { children: React.ReactNode }) {
 }
 
 export default function Documentation() {
+  const { t } = useDashboardI18n();
   const router = useRouter();
   const { setActivePage } = useDashboard();
   const [searchQuery, setSearchQuery] = useState("");
@@ -186,8 +188,8 @@ export default function Documentation() {
             <FileText className="w-6 h-6 text-primary" />
           </div>
           <div className="flex-1">
-            <h4 className="font-bold text-dark-navy">Developer Guide</h4>
-            <p className="text-xs text-muted-foreground">Complete SDK and API documentation.</p>
+            <h4 className="font-bold text-dark-navy">{t("docs.developerGuide")}</h4>
+            <p className="text-xs text-muted-foreground">{t("docs.developerDesc")}</p>
             <Button 
               variant="ghost" 
               className="p-0 h-auto text-primary text-xs font-bold mt-2 flex items-center gap-1 hover:bg-transparent"
@@ -203,8 +205,8 @@ export default function Documentation() {
             <LifeBuoy className="w-6 h-6 text-blue-500" />
           </div>
           <div className="flex-1">
-            <h4 className="font-bold text-dark-navy">Community Forum</h4>
-            <p className="text-xs text-muted-foreground">Discuss strategies with other store owners.</p>
+            <h4 className="font-bold text-dark-navy">{t("docs.communityForum")}</h4>
+            <p className="text-xs text-muted-foreground">{t("docs.communityDesc")}</p>
             <Button 
               variant="ghost" 
               className="p-0 h-auto text-blue-500 text-xs font-bold mt-2 flex items-center gap-1 hover:bg-transparent"
@@ -220,8 +222,8 @@ export default function Documentation() {
             <MessageCircle className="w-6 h-6 text-dark-navy" />
           </div>
           <div className="flex-1">
-            <h4 className="font-bold">Direct Support</h4>
-            <p className="text-xs text-slate-400">Need urgent help? Contact our team.</p>
+            <h4 className="font-bold">{t("docs.directSupport")}</h4>
+            <p className="text-xs text-slate-400">{t("docs.directDesc")}</p>
             <Button 
               className="mt-2 h-7 px-3 text-xs bg-primary text-dark-navy font-bold hover:bg-primary/90"
               onClick={() => router.push("/support")}

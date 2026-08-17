@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { useDashboardI18n } from "@/components/dashboard/I18nProvider";
 import {
   Handshake,
   Copy,
@@ -43,6 +44,7 @@ function Wrapper({ children }: { children: React.ReactNode }) {
 }
 
 export default function PartnerDashboard() {
+  const { t } = useDashboardI18n();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<Tab>("overview");
   const [partner, setPartner] = useState<any>(null);
@@ -192,8 +194,8 @@ export default function PartnerDashboard() {
                 <Handshake className="w-5 h-5 text-lemon-green" />
               </div>
               <div>
-                <h2 className="text-lg font-bold text-dark-navy">Partner Program</h2>
-                <p className="text-xs text-gray-500">Refer businesses & earn commissions</p>
+                <h2 className="text-lg font-bold text-dark-navy">{t("partner.title")}</h2>
+                <p className="text-xs text-gray-500">{t("partner.referDesc")}</p>
               </div>
             </div>
             {partner && (
@@ -229,7 +231,7 @@ export default function PartnerDashboard() {
             <Card className="bg-dark-navy border-white/10">
               <CardContent className="p-8 text-center">
                 <Handshake className="w-16 h-16 mx-auto mb-4 text-lemon-green opacity-50" />
-                <h2 className="text-xl font-bold text-white mb-2">Join the Partner Program</h2>
+                <h2 className="text-xl font-bold text-white mb-2">{t("partner.join")}</h2>
                 <p className="text-gray-400 mb-6 max-w-md mx-auto">
                   Earn commissions by referring other businesses to CircuCity AI.
                 </p>
@@ -247,7 +249,7 @@ export default function PartnerDashboard() {
                 <Card className="bg-white border-gray-200 shadow-sm">
                   <CardContent className="p-4">
                     <div className="flex items-center gap-2 text-gray-500 text-sm mb-1">
-                      <Wallet className="w-4 h-4" /> Available Balance
+                      <Wallet className="w-4 h-4" /> {t("partner.availableBalance")}
                     </div>
                     <p className="text-2xl font-bold text-gray-900">${balance.toFixed(2)}</p>
                   </CardContent>
@@ -282,7 +284,7 @@ export default function PartnerDashboard() {
                 <CardContent className="p-4">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <div>
-                      <p className="text-sm text-gray-400 mb-1">Your Referral Link</p>
+                      <p className="text-sm text-gray-400 mb-1">{t("partner.referralLink")}</p>
                       <p className="text-gray-900 font-mono text-sm break-all">
                         {origin}/?ref={partner.referralCode}
                       </p>
@@ -297,7 +299,7 @@ export default function PartnerDashboard() {
 
               <Card className="bg-white border-gray-200 shadow-sm">
                 <CardHeader>
-                  <CardTitle className="text-gray-900 text-lg">Recent Commissions</CardTitle>
+                  <CardTitle className="text-gray-900 text-lg">{t("partner.recentCommissions")}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   {commissions.length === 0 ? (
@@ -329,7 +331,7 @@ export default function PartnerDashboard() {
                 <CardContent className="p-4">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <div>
-                      <p className="text-sm text-gray-400 mb-1">Your Referral Link</p>
+                      <p className="text-sm text-gray-400 mb-1">{t("partner.referralLink")}</p>
                       <p className="text-gray-900 font-mono text-sm break-all">
                         {origin}/?ref={partner.referralCode}
                       </p>
@@ -344,24 +346,24 @@ export default function PartnerDashboard() {
 
               <Card className="bg-white border-gray-200 shadow-sm">
                 <CardHeader>
-                  <CardTitle className="text-gray-900 text-lg">Referral History</CardTitle>
+                  <CardTitle className="text-gray-900 text-lg">{t("partner.referralHistory")}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   {referrals.length === 0 ? (
                     <div className="text-center py-8">
                       <Users className="w-12 h-12 mx-auto mb-3 text-gray-600" />
-                      <p className="text-gray-500">No referrals yet. Start sharing your link!</p>
+                      <p className="text-gray-500">{t("partner.noReferrals")}</p>
                     </div>
                   ) : (
                     <div className="overflow-x-auto">
                       <table className="w-full text-sm">
                         <thead>
                           <tr className="border-b border-gray-100">
-                            <th className="text-left py-3 text-gray-400 font-medium">Email</th>
-                            <th className="text-left py-3 text-gray-400 font-medium">Name</th>
-                            <th className="text-left py-3 text-gray-400 font-medium">Source</th>
-                            <th className="text-left py-3 text-gray-400 font-medium">Status</th>
-                            <th className="text-left py-3 text-gray-400 font-medium">Date</th>
+                            <th className="text-left py-3 text-gray-400 font-medium">{t("common.email")}</th>
+                            <th className="text-left py-3 text-gray-400 font-medium">{t("common.name")}</th>
+                            <th className="text-left py-3 text-gray-400 font-medium">{t("common.source")}</th>
+                            <th className="text-left py-3 text-gray-400 font-medium">{t("common.status")}</th>
+                            <th className="text-left py-3 text-gray-400 font-medium">{t("common.date")}</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -416,20 +418,20 @@ export default function PartnerDashboard() {
 
               <Card className="bg-white border-gray-200 shadow-sm">
                 <CardHeader>
-                  <CardTitle className="text-gray-900 text-lg">All Commissions</CardTitle>
+                  <CardTitle className="text-gray-900 text-lg">{t("partner.allCommissions")}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   {commissions.length === 0 ? (
-                    <p className="text-gray-500 text-sm">No commissions recorded yet.</p>
+                    <p className="text-gray-500 text-sm">{t("partner.noCommissions")}</p>
                   ) : (
                     <div className="overflow-x-auto">
                       <table className="w-full text-sm">
                         <thead>
                           <tr className="border-b border-gray-100">
-                            <th className="text-left py-3 text-gray-400 font-medium">Description</th>
-                            <th className="text-left py-3 text-gray-400 font-medium">Amount</th>
-                            <th className="text-left py-3 text-gray-400 font-medium">Status</th>
-                            <th className="text-left py-3 text-gray-400 font-medium">Date</th>
+                            <th className="text-left py-3 text-gray-400 font-medium">{t("common.description")}</th>
+                            <th className="text-left py-3 text-gray-400 font-medium">{t("bill.amount")}</th>
+                            <th className="text-left py-3 text-gray-400 font-medium">{t("common.status")}</th>
+                            <th className="text-left py-3 text-gray-400 font-medium">{t("common.date")}</th>
                             <th className="text-left py-3 text-gray-400 font-medium">Paid At</th>
                           </tr>
                         </thead>
@@ -460,7 +462,7 @@ export default function PartnerDashboard() {
                 <CardContent className="p-4">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
-                      <p className="text-sm text-gray-400">Available Balance</p>
+                      <p className="text-sm text-gray-400">{t("partner.availableBalance")}</p>
                       <p className="text-3xl font-bold text-white">${balance.toFixed(2)}</p>
                     </div>
                     <Button
@@ -481,7 +483,7 @@ export default function PartnerDashboard() {
               {showRequestPayout && (
                 <Card className="bg-white border-gray-200 shadow-sm">
                   <CardContent className="p-4">
-                    <h3 className="text-white font-bold mb-4">Request a Payout</h3>
+                    <h3 className="text-white font-bold mb-4">{t("partner.requestPayout")}</h3>
                     {payoutSuccess && (
                       <div className="bg-green-500/10 border border-green-500/20 text-green-400 p-3 rounded-lg mb-4 text-sm">{payoutSuccess}</div>
                     )}
@@ -518,24 +520,24 @@ export default function PartnerDashboard() {
 
               <Card className="bg-white border-gray-200 shadow-sm">
                 <CardHeader>
-                  <CardTitle className="text-gray-900 text-lg">Payout History</CardTitle>
+                  <CardTitle className="text-gray-900 text-lg">{t("partner.payoutHistory")}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   {payouts.length === 0 ? (
                     <div className="text-center py-8">
                       <History className="w-12 h-12 mx-auto mb-3 text-gray-600" />
-                      <p className="text-gray-500">No payouts yet.</p>
+                      <p className="text-gray-500">{t("partner.noPayouts")}</p>
                     </div>
                   ) : (
                     <div className="overflow-x-auto">
                       <table className="w-full text-sm">
                         <thead>
                           <tr className="border-b border-gray-100">
-                            <th className="text-left py-3 text-gray-400 font-medium">Amount</th>
-                            <th className="text-left py-3 text-gray-400 font-medium">Method</th>
-                            <th className="text-left py-3 text-gray-400 font-medium">Status</th>
-                            <th className="text-left py-3 text-gray-400 font-medium">Requested</th>
-                            <th className="text-left py-3 text-gray-400 font-medium">Completed</th>
+                            <th className="text-left py-3 text-gray-400 font-medium">{t("bill.amount")}</th>
+                            <th className="text-left py-3 text-gray-400 font-medium">{t("partner.method")}</th>
+                            <th className="text-left py-3 text-gray-400 font-medium">{t("common.status")}</th>
+                            <th className="text-left py-3 text-gray-400 font-medium">{t("partner.requested")}</th>
+                            <th className="text-left py-3 text-gray-400 font-medium">{t("partner.completed")}</th>
                           </tr>
                         </thead>
                         <tbody>

@@ -7,12 +7,14 @@ import { Badge } from "@/components/ui/badge";
 import { HelpCircle, Search, RefreshCw, Loader2, BookOpen, CheckCircle2, Sparkles, XCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { useDashboardI18n } from "@/components/dashboard/I18nProvider";
 
 function Wrapper({ children }: { children: React.ReactNode }) {
   return <div className="space-y-8  max-w-full overflow-hidden">{children}</div>;
 }
 
 export default function Unanswered() {
+  const { t } = useDashboardI18n();
   const [questions, setQuestions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -120,8 +122,8 @@ export default function Unanswered() {
         ) : (
           <div className="p-12 text-center">
             <CheckCircle2 className="w-12 h-12 text-emerald-200 mx-auto mb-3" />
-            <p className="text-sm font-medium text-emerald-700">No unanswered questions!</p>
-            <p className="text-xs text-muted-foreground mt-1">Your chatbot is answering everything correctly.</p>
+            <p className="text-sm font-medium text-emerald-700">{t("unanswered.noQuestions")}</p>
+            <p className="text-xs text-muted-foreground mt-1">{t("unanswered.allAnswered")}</p>
           </div>
         )}
       </Card>

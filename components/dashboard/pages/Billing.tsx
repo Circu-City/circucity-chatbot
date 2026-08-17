@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PLANS } from "@/lib/plans-config";
+import { useDashboardI18n } from "@/components/dashboard/I18nProvider";
 
 function Wrapper({ children }: { children: React.ReactNode }) {
   return (
@@ -27,6 +28,7 @@ function Wrapper({ children }: { children: React.ReactNode }) {
 }
 
 export default function Billing({ paymentSuccess }: { paymentSuccess?: boolean }) {
+  const { t } = useDashboardI18n();
   const [analytics, setAnalytics] = useState<any>(null);
   const [subscription, setSubscription] = useState<any>(null);
   const [store, setStore] = useState<any>(null);
@@ -132,7 +134,7 @@ export default function Billing({ paymentSuccess }: { paymentSuccess?: boolean }
       ) : fetchError ? (
         <div className="flex flex-col items-center justify-center h-64 gap-4">
           <AlertCircle className="w-10 h-10 text-red-400" />
-          <p className="text-slate-600 text-sm">Failed to load billing data. Please try again.</p>
+          <p className="text-slate-600 text-sm">{t("bill.loadFailed")}</p>
           <Button variant="outline" onClick={() => { setFetchError(false); setLoading(true); window.location.reload(); }}>
             <RefreshCw className="w-4 h-4 mr-1" /> Retry
           </Button>
@@ -144,8 +146,8 @@ export default function Billing({ paymentSuccess }: { paymentSuccess?: boolean }
               <div className="flex items-center gap-3">
                 <PartyPopper className="w-5 h-5 text-emerald-600 shrink-0" />
                 <div>
-                  <p className="font-semibold text-emerald-800 text-sm">Payment successful!</p>
-                  <p className="text-xs text-emerald-600">Your subscription has been updated.</p>
+                  <p className="font-semibold text-emerald-800 text-sm">{t("bill.paymentSuccess")}</p>
+                  <p className="text-xs text-emerald-600">{t("bill.updated")}</p>
                 </div>
               </div>
               <button onClick={() => setDismissSuccess(true)} className="text-emerald-500 hover:text-emerald-700 text-xl leading-none shrink-0 ml-3">&times;</button>
@@ -154,8 +156,8 @@ export default function Billing({ paymentSuccess }: { paymentSuccess?: boolean }
 
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h2 className="text-xl sm:text-2xl font-bold text-dark-navy">Billing & Plans</h2>
-              <p className="text-muted-foreground text-sm">Manage your subscription and payment methods.</p>
+              <h2 className="text-xl sm:text-2xl font-bold text-dark-navy">{t("bill.title")}</h2>
+              <p className="text-muted-foreground text-sm">{t("bill.manageDesc")}</p>
             </div>
             <Button variant="outline" className="flex items-center gap-2 shrink-0" onClick={() => openPortal()}>
               <Download className="w-4 h-4" />
@@ -170,13 +172,13 @@ export default function Billing({ paymentSuccess }: { paymentSuccess?: boolean }
                 <Zap className="w-5 h-5 text-dark-navy" />
               </div>
               <div>
-                <p className="text-primary font-semibold text-[11px] uppercase tracking-wider">Current Plan</p>
+                <p className="text-primary font-semibold text-[11px] uppercase tracking-wider">{t("bill.currentPlan")}</p>
                 <h3 className="text-lg font-bold capitalize mt-0.5">{isFreePlan ? "Free" : currentPlanMeta?.name} Plan</h3>
               </div>
             </div>
             <div className="flex items-center gap-4 z-10 w-full sm:w-auto justify-between sm:justify-end">
               <div className="text-right">
-                <p className="text-slate-400 text-[11px] uppercase tracking-wider font-medium">Renewal</p>
+                <p className="text-slate-400 text-[11px] uppercase tracking-wider font-medium">{t("bill.renewal")}</p>
                 <p className="text-sm font-medium">{nextRenewal}</p>
               </div>
               <Button variant="outline" onClick={() => openPortal()} disabled={portalLoading} className="shrink-0 text-sm">
@@ -187,7 +189,7 @@ export default function Billing({ paymentSuccess }: { paymentSuccess?: boolean }
 
           {/* Plans */}
           <div>
-            <h3 className="text-base font-bold text-dark-navy mb-3">Plans</h3>
+            <h3 className="text-base font-bold text-dark-navy mb-3">{t("bill.plans")}</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
               {PLANS.map((plan, i) => {
                 const isCurrent = plan.name.toLowerCase() === currentPlan;
@@ -200,7 +202,7 @@ export default function Billing({ paymentSuccess }: { paymentSuccess?: boolean }
                   )}>
                     {isCurrent && (
                       <div className="text-[10px] font-bold uppercase tracking-wider text-primary mb-3 flex items-center gap-1.5">
-                        <CheckCircle2 className="w-3 h-3" /> Current Plan
+                        <CheckCircle2 className="w-3 h-3" /> {t("bill.currentPlan")}
                       </div>
                     )}
                     <div className="mb-3">
@@ -243,7 +245,7 @@ export default function Billing({ paymentSuccess }: { paymentSuccess?: boolean }
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2.5">
                   <CreditCard className="w-4 h-4 text-dark-navy" />
-                  <h3 className="font-semibold text-dark-navy text-sm">Payment Method</h3>
+                  <h3 className="font-semibold text-dark-navy text-sm">{t("bill.paymentMethod")}</h3>
                 </div>
                 <Button variant="ghost" size="sm" onClick={() => openPortal()} disabled={portalLoading} className="text-xs">
                   {portalLoading ? "Opening..." : "Update"}
@@ -254,19 +256,19 @@ export default function Billing({ paymentSuccess }: { paymentSuccess?: boolean }
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-7 bg-dark-navy rounded flex items-center justify-center text-white text-[9px] font-bold uppercase tracking-wider shrink-0">
-                        {paymentMethod.brand?.toUpperCase().slice(0,4) || "CARD"}
+                        {paymentMethod.brand?.toUpperCase().slice(0,4) || t("bill.card")}
                       </div>
                       <div>
                         <p className="text-sm font-medium text-dark-navy">{paymentMethod.brand} ending in {paymentMethod.last4}</p>
                         <p className="text-xs text-muted-foreground">Expires {paymentMethod.exp_month}/{paymentMethod.exp_year}</p>
                       </div>
                     </div>
-                    <Button variant="outline" size="sm" onClick={() => openPortal()} disabled={portalLoading}>Edit</Button>
+                    <Button variant="outline" size="sm" onClick={() => openPortal()} disabled={portalLoading}>{t("bill.edit")}</Button>
                   </div>
                 ) : (
                   <div className="text-center py-3">
-                    <div className="w-10 h-7 bg-gray-200 rounded flex items-center justify-center text-gray-400 text-[9px] font-bold uppercase mx-auto mb-2">CARD</div>
-                    <p className="text-sm text-muted-foreground mb-1">No card on file</p>
+                    <div className="w-10 h-7 bg-gray-200 rounded flex items-center justify-center text-gray-400 text-[9px] font-bold uppercase mx-auto mb-2">{t("bill.card")}</div>
+                    <p className="text-sm text-muted-foreground mb-1">{t("bill.noCard")}</p>
                     <p className="text-xs text-muted-foreground mb-3">Your card will be saved after your first paid checkout. You can also add one now.</p>
                     <Button onClick={() => openPortal()} disabled={portalLoading} size="sm">
                       {portalLoading ? "Opening..." : "Add Card"}
@@ -279,7 +281,7 @@ export default function Billing({ paymentSuccess }: { paymentSuccess?: boolean }
             <Card className="p-5 border-border shadow-sm">
               <div className="flex items-center gap-2.5 mb-4">
                 <ShieldCheck className="w-4 h-5 text-dark-navy" />
-                <h3 className="font-semibold text-dark-navy text-sm">Plan Details</h3>
+                <h3 className="font-semibold text-dark-navy text-sm">{t("bill.planDetails")}</h3>
               </div>
               <div className="space-y-3">
                 <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-border text-sm">
@@ -302,16 +304,16 @@ export default function Billing({ paymentSuccess }: { paymentSuccess?: boolean }
           <Card className="p-5 border-border shadow-sm">
             <div className="flex items-center gap-2.5 mb-3">
               <Zap className="w-4 h-5 text-dark-navy" />
-              <h3 className="font-semibold text-dark-navy text-sm">Usage This Period</h3>
+              <h3 className="font-semibold text-dark-navy text-sm">{t("bill.usageThisPeriod")}</h3>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="p-4 bg-slate-50 rounded-xl border border-border">
-                <p className="text-xs text-muted-foreground">Messages Used</p>
+                <p className="text-xs text-muted-foreground">{t("bill.messagesUsed")}</p>
                 <p className="text-xl font-bold text-dark-navy mt-1">{analytics?.totalMessages?.toLocaleString() || "0"}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">this month</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{t("bill.thisMonth")}</p>
               </div>
               <div className="p-4 bg-slate-50 rounded-xl border border-border">
-                <p className="text-xs text-muted-foreground">Period</p>
+                <p className="text-xs text-muted-foreground">{t("bill.period")}</p>
                 <p className="text-sm font-medium mt-1">
                   {subscription?.currentPeriodEnd 
                     ? `${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${new Date(subscription.currentPeriodEnd).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
@@ -328,7 +330,7 @@ export default function Billing({ paymentSuccess }: { paymentSuccess?: boolean }
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2.5">
                 <Download className="w-4 h-5 text-dark-navy" />
-                <h3 className="font-semibold text-dark-navy text-sm">Invoice History</h3>
+                <h3 className="font-semibold text-dark-navy text-sm">{t("bill.invoiceHistory")}</h3>
               </div>
               {invoices.length > 0 && (
                 <Button variant="ghost" size="sm" onClick={() => openPortal()} className="text-xs">
@@ -341,11 +343,11 @@ export default function Billing({ paymentSuccess }: { paymentSuccess?: boolean }
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-border text-left text-xs text-muted-foreground uppercase tracking-wider">
-                      <th className="pb-3 pr-4 font-medium">Invoice</th>
-                      <th className="pb-3 pr-4 font-medium">Date</th>
-                      <th className="pb-3 pr-4 font-medium">Amount</th>
+                      <th className="pb-3 pr-4 font-medium">{t("common.invoice")}</th>
+                      <th className="pb-3 pr-4 font-medium">{t("common.date")}</th>
+                      <th className="pb-3 pr-4 font-medium">{t("bill.amount")}</th>
                       <th className="pb-3 pr-4 font-medium">Status</th>
-                      <th className="pb-3 text-right font-medium">Actions</th>
+                      <th className="pb-3 text-right font-medium">{t("common.actions")}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
@@ -360,7 +362,7 @@ export default function Billing({ paymentSuccess }: { paymentSuccess?: boolean }
                           <Badge variant={inv.status === "paid" ? "primary" : "outline"} className="capitalize text-xs font-medium">{inv.status}</Badge>
                         </td>
                         <td className="py-3 text-right text-sm">
-                          {inv.hostedUrl && <a href={inv.hostedUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline mr-3 text-xs">View</a>}
+                          {inv.hostedUrl && <a href={inv.hostedUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline mr-3 text-xs">{t("bill.view")}</a>}
                           {inv.pdfUrl && <a href={inv.pdfUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline text-xs">PDF</a>}
                         </td>
                       </tr>

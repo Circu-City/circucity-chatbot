@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, MessageSquare, Users, Zap, CheckCircle2, MousePointer2, Download, Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useDashboardI18n } from "@/components/dashboard/I18nProvider";
 
 function Wrapper({ children }: { children: React.ReactNode }) {
   return (
@@ -27,6 +28,7 @@ interface Stats {
 }
 
 export default function Analytics() {
+  const { t } = useDashboardI18n();
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
   const [dateFilter, setDateFilter] = useState("30d");
@@ -80,7 +82,7 @@ export default function Analytics() {
       ) : (
         <>
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-dark-navy">Analytics</h2>
+            <h2 className="text-2xl font-bold text-dark-navy">{t("ana.title")}</h2>
             <div className="flex items-center gap-2">
               <Button variant="outline" size="sm" className="gap-2" onClick={() => setShowDateMenu(!showDateMenu)}>
                 <Calendar className="w-4 h-4" />
@@ -113,7 +115,7 @@ export default function Analytics() {
 
           <Card className="border-border shadow-sm">
             <div className="p-6 border-b border-border flex items-center justify-between">
-              <h3 className="font-semibold text-dark-navy">Message Volume</h3>
+              <h3 className="font-semibold text-dark-navy">{t("ana.messageVolume")}</h3>
               <TrendingUp className="w-4 h-4 text-muted-foreground" />
             </div>
             <CardContent className="p-6">

@@ -16,12 +16,14 @@ import {
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { useDashboardI18n } from "../I18nProvider";
 
 function Wrapper({ children }: { children: React.ReactNode }) {
   return <div className="space-y-8  max-w-full overflow-hidden">{children}</div>;
 }
 
 export default function Conversations() {
+  const { t } = useDashboardI18n();
   const [conversations, setConversations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -35,7 +37,7 @@ export default function Conversations() {
       const res = await fetch("/api/client/conversations?limit=50");
       const json = await res.json();
       if (json.success) setConversations(json.data);
-    } catch { setError("Failed to load conversations"); }
+    } catch { setError(t("conv.loadFailed")); }
     setLoading(false);
   };
 
@@ -49,7 +51,7 @@ export default function Conversations() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a"); a.href = url; a.download = "conversations.csv"; a.click();
       URL.revokeObjectURL(url);
-    } catch { setError("Failed to load conversations"); }
+    } catch { setError(t("conv.loadFailed")); }
     setExporting(false);
   };
 
@@ -69,7 +71,7 @@ export default function Conversations() {
         }
         return c;
       }));
-    } catch { setError("Failed to load conversations"); }
+    } catch { setError(t("conv.loadFailed")); }
     setSavingTag("");
   };
 
@@ -83,19 +85,19 @@ export default function Conversations() {
 
 <div className="relative w-full md:w-72"><Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
 
-<Input placeholder="Search by customer name or email..." className="pl-10"
+<Input placeholder={t("conv.search")} className="pl-10"
           value={search} onChange={(e) => setSearch(e.target.value)} />
       </div>
 
       <div className="flex items-center justify-between gap-4">
-            <h2 className="text-2xl font-bold text-dark-navy">Conversations</h2>
+            <h2 className="text-2xl font-bold text-dark-navy">{t("conv.title")}</h2>
             <div className="flex items-center gap-2">
               <Button variant="outline" size="sm" className="gap-1.5" onClick={fetchConversations}>
                 <RefreshCw className="w-4 h-4" />
               </Button>
               <Button variant="outline" size="sm" className="gap-1.5" onClick={handleExport} disabled={exporting}>
                 <Download className="w-4 h-4" />
-                {exporting ? "Exporting..." : "Export"}
+                {exporting ? t("conv.exporting") : t("conv.export")}
               </Button>
             </div>
           </div>
@@ -110,25 +112,25 @@ export default function Conversations() {
             <table className="w-full text-left border-collapse">
               <thead className="bg-slate-50 border-b border-border">
                 <tr>
-                  <th className="p-4 text-sm font-semibold text-dark-navy">Customer</th>
-                  <th className="p-4 text-sm font-semibold text-dark-navy">Email</th>
-                  <th className="p-4 text-sm font-semibold text-dark-navy">Status</th>
-                  <th className="p-4 text-sm font-semibold text-dark-navy">Sentiment</th>
-                  <th className="p-4 text-sm font-semibold text-dark-navy">Date</th>
-                  <th className="p-4 text-sm font-semibold text-dark-navy text-right">Actions</th>
+                  <th className="p-4 text-sm font-semibold text-dark-navy">{t("common.customer")}</th>
+                  <th className="p-4 text-sm font-semibold text-dark-navy">{t("common.email")}</th>
+                  <th className="p-4 text-sm font-semibold text-dark-navy">{t("common.status")}</th>
+                  <th className="p-4 text-sm font-semibold text-dark-navy">{t("conv.sentiment")}</th>
+                  <th className="p-4 text-sm font-semibold text-dark-navy">{t("common.date")}</th>
+                  <th className="p-4 text-sm font-semibold text-dark-navy text-right">{t("common.actions")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
                 {filtered.length > 0 ? filtered.map((conv: any) => (
                   <tr key={conv.id} className="hover:bg-slate-50 transition-colors">
-                    <td className="p-4 text-sm font-medium text-dark-navy">{conv.customerName || "Anonymous"}</td>
+                    <td className="p-4 text-sm font-medium text-dark-navy">{conv.customerName || t("ov.anonymous")}</td>
                     <td className="p-4 text-sm text-muted-foreground">{conv.customerEmail || "-"}</td>
                     <td className="p-4">
                       <Badge className={cn(
                         "text-[10px] uppercase tracking-wider",
                         conv.resolved ? "bg-green-100 text-green-700 border-green-200" : "bg-blue-100 text-blue-700 border-blue-200"
                       )}>
-                        {conv.resolved ? "Resolved" : "Open"}
+                        {conv.resolved ? t("common.resolved") : t("conv.open")}
                       </Badge>
                     </td>
                     <td className="p-4 text-sm text-muted-foreground">{conv.sentiment || "-"}</td>
@@ -142,7 +144,7 @@ export default function Conversations() {
                 )) : (
                   <tr>
                     <td colSpan={6} className="p-12 text-center text-sm text-muted-foreground">
-                      {search ? "No conversations match your search." : "No conversations yet."}
+                      {search ? t("conv.noMatch") : t("conv.noConversations")}
                     </td>
                   </tr>
                 )}

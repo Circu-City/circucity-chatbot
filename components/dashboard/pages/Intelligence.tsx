@@ -13,6 +13,7 @@ import {
   MessageCircle, Zap, Shield
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useDashboardI18n } from "@/components/dashboard/I18nProvider";
 
 function Wrapper({ children }: { children: React.ReactNode }) {
   return (
@@ -40,6 +41,7 @@ const SUB_TABS = [
 type AlertItem = { message: string; severity: "info" | "warning" | "critical"; timestamp?: string };
 
 export default function Intelligence() {
+  const { t } = useDashboardI18n();
   const [subTab, setSubTab] = useState("summary");
   const [loading, setLoading] = useState(true);
   const [summary, setSummary] = useState<any>(null);
@@ -199,15 +201,15 @@ export default function Intelligence() {
       ) : !summary ? (
         <div className="p-12 text-center">
           <Brain className="w-12 h-12 text-slate-200 mx-auto mb-3" />
-          <p className="text-sm text-muted-foreground">No intelligence data yet</p>
-          <p className="text-xs text-slate-300 mt-1">Data will appear once customers start chatting.</p>
+          <p className="text-sm text-muted-foreground">{t("int.noData")}</p>
+          <p className="text-xs text-slate-300 mt-1">{t("mon.dataWillAppear")}</p>
         </div>
       ) : (
         <>
           {/* Overview Cards */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {[
-              { label: "Conversations", value: summary.total_conversations ?? 0, icon: MessageSquare, color: "text-blue-600", bg: "bg-blue-50" },
+              { label: t("mon.conversations"), value: summary.total_conversations ?? 0, icon: MessageSquare, color: "text-blue-600", bg: "bg-blue-50" },
               { label: "Messages", value: summary.total_messages ?? 0, icon: Activity, color: "text-primary", bg: "bg-primary/10" },
               { label: "Unique Visitors", value: summary.unique_visitors ?? 0, icon: Users, color: "text-emerald-600", bg: "bg-emerald-50" },
               { label: "Returning", value: summary.returning_visitors ?? 0, icon: RotateCcw, color: "text-purple-600", bg: "bg-purple-50" },
@@ -272,22 +274,22 @@ export default function Intelligence() {
             <CardContent className="p-6">
               {subTab === "summary" && (
                 <div className="space-y-6">
-                  <h3 className="font-semibold text-dark-navy text-lg">Intelligence Summary</h3>
+                  <h3 className="font-semibold text-dark-navy text-lg">{t("int.summary")}</h3>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div className="p-4 bg-slate-50 rounded-xl">
-                      <p className="text-xs text-muted-foreground">Leads</p>
+                      <p className="text-xs text-muted-foreground">{t("int.leads")}</p>
                       <p className="text-xl font-bold text-dark-navy">{summary.leads ?? 0}</p>
                     </div>
                     <div className="p-4 bg-slate-50 rounded-xl">
-                      <p className="text-xs text-muted-foreground">Purchase Intents</p>
+                      <p className="text-xs text-muted-foreground">{t("int.purchaseIntents")}</p>
                       <p className="text-xl font-bold text-dark-navy">{summary.purchase_intents ?? 0}</p>
                     </div>
                     <div className="p-4 bg-slate-50 rounded-xl">
-                      <p className="text-xs text-muted-foreground">Returning Visitors</p>
+                      <p className="text-xs text-muted-foreground">{t("int.returningVisitors")}</p>
                       <p className="text-xl font-bold text-dark-navy">{summary.returning_visitors ?? 0}</p>
                     </div>
                     <div className="p-4 bg-slate-50 rounded-xl">
-                      <p className="text-xs text-muted-foreground">Unanswered</p>
+                      <p className="text-xs text-muted-foreground">{t("unanswered.title")}</p>
                       <p className="text-xl font-bold text-dark-navy">{summary.unanswered_queries ?? 0}</p>
                     </div>
                   </div>
@@ -296,7 +298,7 @@ export default function Intelligence() {
 
               {subTab === "products" && (
                 <div className="space-y-4">
-                  <h3 className="font-semibold text-dark-navy text-lg">Product Interests</h3>
+                  <h3 className="font-semibold text-dark-navy text-lg">{t("int.productInterests")}</h3>
                   {productInterests?.products?.length > 0 ? (
                     <div className="divide-y divide-border">
                       {productInterests.products.map((p: any, i: number) => (
@@ -313,11 +315,11 @@ export default function Intelligence() {
                       ))}
                     </div>
                   ) : (
-                    <p className="text-sm text-muted-foreground text-center py-8">No product interests recorded yet.</p>
+                    <p className="text-sm text-muted-foreground text-center py-8">{t("int.noProductInterests")}</p>
                   )}
                   {productInterests?.categories?.length > 0 && (
                     <>
-                      <h4 className="font-medium text-sm text-dark-navy mt-6">Categories</h4>
+                      <h4 className="font-medium text-sm text-dark-navy mt-6">{t("int.categories")}</h4>
                       <div className="flex flex-wrap gap-2">
                         {productInterests.categories.map((c: any, i: number) => (
                           <Badge key={i} variant="secondary" className="text-xs gap-1">
@@ -333,7 +335,7 @@ export default function Intelligence() {
 
               {subTab === "intents" && (
                 <div className="space-y-4">
-                  <h3 className="font-semibold text-dark-navy text-lg">Intent Breakdown</h3>
+                  <h3 className="font-semibold text-dark-navy text-lg">{t("int.intentBreakdown")}</h3>
                   {intentBreakdown?.intents?.length > 0 ? (
                     <div className="space-y-3">
                       {intentBreakdown.intents.map((intent: any, i: number) => {
@@ -353,14 +355,14 @@ export default function Intelligence() {
                       })}
                     </div>
                   ) : (
-                    <p className="text-sm text-muted-foreground text-center py-8">No intent data yet.</p>
+                    <p className="text-sm text-muted-foreground text-center py-8">{t("int.noIntentData")}</p>
                   )}
                 </div>
               )}
 
               {subTab === "sentiment" && (
                 <div className="space-y-4">
-                  <h3 className="font-semibold text-dark-navy text-lg">Sentiment Trend</h3>
+                  <h3 className="font-semibold text-dark-navy text-lg">{t("int.sentimentTrend")}</h3>
                   {sentimentTrend?.trend?.length > 0 ? (
                     <div className="space-y-2">
                       {sentimentTrend.trend.map((s: any, i: number) => (
@@ -381,14 +383,14 @@ export default function Intelligence() {
                       ))}
                     </div>
                   ) : (
-                    <p className="text-sm text-muted-foreground text-center py-8">No sentiment data yet.</p>
+                    <p className="text-sm text-muted-foreground text-center py-8">{t("int.noSentimentData")}</p>
                   )}
                 </div>
               )}
 
               {subTab === "unanswered" && (
                 <div className="space-y-4">
-                  <h3 className="font-semibold text-dark-navy text-lg">Unanswered Queries</h3>
+                  <h3 className="font-semibold text-dark-navy text-lg">{t("int.unansweredQueries")}</h3>
                   {unanswered?.queries?.length > 0 ? (
                     <div className="divide-y divide-border">
                       {unanswered.queries.map((q: any, i: number) => (
@@ -407,8 +409,8 @@ export default function Intelligence() {
                   ) : (
                     <div className="text-center py-8">
                       <CheckCircle2 className="w-10 h-10 text-emerald-300 mx-auto mb-2" />
-                      <p className="text-sm text-emerald-700 font-medium">No unanswered questions!</p>
-                      <p className="text-xs text-muted-foreground mt-1">Your bot is answering everything correctly.</p>
+                      <p className="text-sm text-emerald-700 font-medium">{t("unanswered.noQuestions")}</p>
+                      <p className="text-xs text-muted-foreground mt-1">{t("unanswered.allAnswered")}</p>
                     </div>
                   )}
                 </div>
@@ -416,7 +418,7 @@ export default function Intelligence() {
 
               {subTab === "funnel" && (
                 <div className="space-y-4">
-                  <h3 className="font-semibold text-dark-navy text-lg">Conversation Funnel</h3>
+                  <h3 className="font-semibold text-dark-navy text-lg">{t("int.funnel")}</h3>
                   {funnel?.funnel?.length > 0 ? (
                     <div className="space-y-3">
                       {funnel.funnel.map((stage: any, i: number) => {
@@ -439,14 +441,14 @@ export default function Intelligence() {
                       })}
                     </div>
                   ) : (
-                    <p className="text-sm text-muted-foreground text-center py-8">No funnel data yet.</p>
+                    <p className="text-sm text-muted-foreground text-center py-8">{t("int.noFunnelData")}</p>
                   )}
                 </div>
               )}
 
               {subTab === "recommendations" && (
                 <div className="space-y-4">
-                  <h3 className="font-semibold text-dark-navy text-lg">AI Recommendations</h3>
+                  <h3 className="font-semibold text-dark-navy text-lg">{t("int.recommendations")}</h3>
                   {recommendations?.recommendations?.length > 0 ? (
                     <div className="grid gap-3">
                       {recommendations.recommendations.map((r: any, i: number) => (
@@ -476,7 +478,7 @@ export default function Intelligence() {
               {subTab === "transcripts" && (
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <h3 className="font-semibold text-dark-navy text-lg">Conversation Transcripts</h3>
+                    <h3 className="font-semibold text-dark-navy text-lg">{t("int.transcripts")}</h3>
                     <Button variant="outline" size="sm" className="gap-1.5" onClick={() => fetchIntelligence("transcripts").then(d => { if (d) setTranscripts(d); })}>
                       <RefreshCw className="w-3.5 h-3.5" />
                       Refresh
@@ -504,7 +506,7 @@ export default function Intelligence() {
                               </div>
                             ))}
                             {(!t.messages || t.messages.length === 0) && (
-                              <p className="text-xs text-muted-foreground">No messages in this session.</p>
+                              <p className="text-xs text-muted-foreground">{t("int.noMessages")}</p>
                             )}
                           </div>
                         </details>
@@ -513,7 +515,7 @@ export default function Intelligence() {
                   ) : (
                     <div className="text-center py-8">
                       <MessageCircle className="w-10 h-10 text-slate-200 mx-auto mb-2" />
-                      <p className="text-sm text-muted-foreground">No conversation transcripts yet.</p>
+                      <p className="text-sm text-muted-foreground">{t("int.noTranscripts")}</p>
                     </div>
                   )}
                 </div>
@@ -523,7 +525,7 @@ export default function Intelligence() {
               {subTab === "events" && (
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <h3 className="font-semibold text-dark-navy text-lg">System Events</h3>
+                    <h3 className="font-semibold text-dark-navy text-lg">{t("int.systemEvents")}</h3>
                     <Button variant="outline" size="sm" className="gap-1.5" onClick={() => fetchIntelligence("events").then(d => { if (d) setEvents(d); })}>
                       <RefreshCw className="w-3.5 h-3.5" />
                       Refresh
@@ -551,8 +553,8 @@ export default function Intelligence() {
                   ) : (
                     <div className="text-center py-8">
                       <CheckCircle2 className="w-10 h-10 text-emerald-300 mx-auto mb-2" />
-                      <p className="text-sm text-emerald-700 font-medium">No events recorded</p>
-                      <p className="text-xs text-muted-foreground mt-1">Everything is running smoothly.</p>
+                      <p className="text-sm text-emerald-700 font-medium">{t("int.noEvents")}</p>
+                      <p className="text-xs text-muted-foreground mt-1">{t("int.runningSmoothly")}</p>
                     </div>
                   )}
                 </div>
@@ -560,7 +562,7 @@ export default function Intelligence() {
 
               {subTab === "alerts" && (
                 <div className="space-y-4">
-                  <h3 className="font-semibold text-dark-navy text-lg">Alert History</h3>
+                  <h3 className="font-semibold text-dark-navy text-lg">{t("int.alertHistory")}</h3>
                   {alertsList.length > 0 ? (
                     <div className="divide-y divide-border">
                       {alertsList.map((a: any, i: number) => {
@@ -585,8 +587,8 @@ export default function Intelligence() {
                   ) : (
                     <div className="text-center py-8">
                       <CheckCircle2 className="w-10 h-10 text-emerald-300 mx-auto mb-2" />
-                      <p className="text-sm text-emerald-700 font-medium">No alerts</p>
-                      <p className="text-xs text-muted-foreground mt-1">Everything is running smoothly.</p>
+                      <p className="text-sm text-emerald-700 font-medium">{t("int.noAlerts")}</p>
+                      <p className="text-xs text-muted-foreground mt-1">{t("int.runningSmoothly")}</p>
                     </div>
                   )}
                 </div>
@@ -596,7 +598,7 @@ export default function Intelligence() {
               {subTab === "system" && (
                 <div className="space-y-6">
                   <div className="flex items-center justify-between">
-                    <h3 className="font-semibold text-dark-navy text-lg">System Status</h3>
+                    <h3 className="font-semibold text-dark-navy text-lg">{t("int.systemStatus")}</h3>
                     <Button variant="outline" size="sm" className="gap-1.5" onClick={() => fetchIntelligence("system/integrity").then(d => { if (d) setSystemStatus(d); })}>
                       <RefreshCw className="w-3.5 h-3.5" />
                       Refresh
@@ -605,7 +607,7 @@ export default function Intelligence() {
 
                   {/* Database Integrity */}
                   <div className="p-4 rounded-xl border border-border">
-                    <h4 className="font-medium text-dark-navy text-sm mb-3">Database Integrity</h4>
+                    <h4 className="font-medium text-dark-navy text-sm mb-3">{t("int.databaseIntegrity")}</h4>
                     {systemStatus ? (
                       <div className="space-y-2">
                         <div className="flex items-center gap-2">
@@ -636,13 +638,13 @@ export default function Intelligence() {
                         </div>
                       </div>
                     ) : (
-                      <p className="text-sm text-muted-foreground">Loading system status...</p>
+                      <p className="text-sm text-muted-foreground">{t("int.loadingStatus")}</p>
                     )}
                   </div>
 
                   {/* Hallucination Flags */}
                   <div className="p-4 rounded-xl border border-border">
-                    <h4 className="font-medium text-dark-navy text-sm mb-3">Hallucination Detections</h4>
+                    <h4 className="font-medium text-dark-navy text-sm mb-3">{t("int.hallucinationDetections")}</h4>
                     {hallucinations?.flags?.length > 0 ? (
                       <div className="divide-y divide-border">
                         {hallucinations.flags.map((f: any, i: number) => (
@@ -671,22 +673,22 @@ export default function Intelligence() {
 
                   {/* System Info */}
                   <div className="p-4 rounded-xl border border-border bg-slate-50">
-                    <h4 className="font-medium text-dark-navy text-sm mb-3">System Info</h4>
+                    <h4 className="font-medium text-dark-navy text-sm mb-3">{t("int.systemInfo")}</h4>
                     <div className="grid grid-cols-2 gap-3 text-sm">
                       <div>
-                        <span className="text-muted-foreground">Total Events</span>
+                        <span className="text-muted-foreground">{t("int.totalEvents")}</span>
                         <p className="font-medium text-dark-navy">{events?.events?.length || 0}</p>
                       </div>
                       <div>
-                        <span className="text-muted-foreground">Hallucinations</span>
+                        <span className="text-muted-foreground">{t("int.hallucinations")}</span>
                         <p className="font-medium text-dark-navy">{hallucinations?.flags?.length || 0}</p>
                       </div>
                       <div>
-                        <span className="text-muted-foreground">Alerts</span>
+                        <span className="text-muted-foreground">{t("int.alerts")}</span>
                         <p className="font-medium text-dark-navy">{alertsList.length}</p>
                       </div>
                       <div>
-                        <span className="text-muted-foreground">Transcripts</span>
+                        <span className="text-muted-foreground">{t("int.transcripts")}</span>
                         <p className="font-medium text-dark-navy">{transcripts?.transcripts?.length || 0}</p>
                       </div>
                     </div>
@@ -696,7 +698,7 @@ export default function Intelligence() {
 
               {subTab === "ask" && (
                 <div className="space-y-4">
-                  <h3 className="font-semibold text-dark-navy text-lg">Ask About Your Business</h3>
+                  <h3 className="font-semibold text-dark-navy text-lg">{t("int.askAboutBusiness")}</h3>
                   <p className="text-xs text-muted-foreground">Ask natural language questions about your customer conversations and business performance.</p>
                   <div className="flex gap-2">
                     <Input

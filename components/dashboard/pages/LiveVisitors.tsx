@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Monitor, WifiOff, ExternalLink, Globe } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useDashboardI18n } from "@/components/dashboard/I18nProvider";
 
 function Wrapper({ children }: { children: React.ReactNode }) {
   return (
@@ -37,6 +38,7 @@ interface Visitor {
 }
 
 export default function LiveVisitors() {
+  const { t } = useDashboardI18n();
   const [visitors, setVisitors] = useState<Visitor[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -67,7 +69,7 @@ export default function LiveVisitors() {
         <Card className="border-border shadow-sm">
           <CardContent className="p-12 text-center">
             <WifiOff className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-bold text-dark-navy mb-2">No visitors right now</h3>
+            <h3 className="text-lg font-bold text-dark-navy mb-2">{t("visitors.noVisitors")}</h3>
             <p className="text-sm text-muted-foreground">When someone visits your site, they&apos;ll appear here in real-time.</p>
           </CardContent>
         </Card>

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { useDashboardI18n } from "@/components/dashboard/I18nProvider";
 
 import {
   Search, Plus, Check, X, ExternalLink, RefreshCw, AlertCircle,
@@ -43,6 +44,7 @@ const PLATFORMS = [
 ];
 
 export default function Integrations() {
+  const { t } = useDashboardI18n();
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState("all");
@@ -186,7 +188,7 @@ export default function Integrations() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-dark-navy">Integrations</h2>
+        <h2 className="text-xl font-bold text-dark-navy">{t("integrations.title")}</h2>
       </div>
 
       <div className="flex items-center gap-3 flex-wrap">
@@ -213,7 +215,7 @@ export default function Integrations() {
                 <div className="w-10 h-10 rounded-xl border border-gray-200 flex items-center justify-center p-2 bg-white overflow-hidden">
                   <img src={platform.icon} alt={platform.name} className="w-6 h-6 object-contain" />
                 </div>
-                {isConnected && <Badge className="bg-green-500 text-[10px]">Connected</Badge>}
+                {isConnected && <Badge className="bg-green-500 text-[10px]">{t("common.connected")}</Badge>}
               </div>
               <h3 className="text-sm font-semibold text-dark-navy mb-0.5">{platform.name}</h3>
               <p className="text-xs text-muted-foreground mb-3">{platform.desc}</p>

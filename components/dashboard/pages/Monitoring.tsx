@@ -9,6 +9,7 @@ import {
   RefreshCw, Loader2, Lightbulb, Info, Store
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useDashboardI18n } from "@/components/dashboard/I18nProvider";
 
 function Wrapper({ children }: { children: React.ReactNode }) {
   return (
@@ -19,6 +20,7 @@ function Wrapper({ children }: { children: React.ReactNode }) {
 }
 
 export default function Monitoring() {
+  const { t } = useDashboardI18n();
   const [metrics, setMetrics] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [days, setDays] = useState(30);
@@ -47,8 +49,8 @@ export default function Monitoring() {
       ) : !d ? (
         <div className="p-12 text-center">
           <TrendingUp className="w-12 h-12 text-slate-200 mx-auto mb-3" />
-          <p className="text-sm text-muted-foreground">No metrics available yet</p>
-          <p className="text-xs text-slate-300 mt-1">Data will appear once customers start chatting.</p>
+          <p className="text-sm text-muted-foreground">{t("mon.noMetrics")}</p>
+          <p className="text-xs text-slate-300 mt-1">{t("mon.dataWillAppear")}</p>
         </div>
       ) : (
         <>
@@ -57,7 +59,7 @@ export default function Monitoring() {
               <CardContent className="p-4">
                 <div className="flex items-center gap-2 text-emerald-600 mb-2">
                   <MessageCircle className="w-4 h-4" />
-                  <span className="text-[10px] font-bold uppercase tracking-wider">Conversations</span>
+                  <span className="text-[10px] font-bold uppercase tracking-wider">{t("mon.conversations")}</span>
                 </div>
                 <p className="text-2xl font-bold text-dark-navy">{d.totals?.conversations}</p>
                 <p className="text-xs text-muted-foreground">{d.totals?.messages} messages</p>
@@ -67,17 +69,17 @@ export default function Monitoring() {
               <CardContent className="p-4">
                 <div className="flex items-center gap-2 text-blue-600 mb-2">
                   <Activity className="w-4 h-4" />
-                  <span className="text-[10px] font-bold uppercase tracking-wider">Avg Msgs/Chat</span>
+                  <span className="text-[10px] font-bold uppercase tracking-wider">{t("mon.avgMsgs")}</span>
                 </div>
                 <p className="text-2xl font-bold text-dark-navy">{d.totals?.avgMessagesPerConv}</p>
-                <p className="text-xs text-muted-foreground">Per conversation</p>
+                <p className="text-xs text-muted-foreground">{t("mon.perConversation")}</p>
               </CardContent>
             </Card>
             <Card className="border-border shadow-sm">
               <CardContent className="p-4">
                 <div className="flex items-center gap-2 text-amber-600 mb-2">
                   <AlertTriangle className="w-4 h-4" />
-                  <span className="text-[10px] font-bold uppercase tracking-wider">Escalation Rate</span>
+                  <span className="text-[10px] font-bold uppercase tracking-wider">{t("mon.escalationRate")}</span>
                 </div>
                 <p className="text-2xl font-bold text-dark-navy">{d.quality?.escalationRate}%</p>
                 <p className="text-xs text-muted-foreground">{d.quality?.escalated} escalated</p>
@@ -87,7 +89,7 @@ export default function Monitoring() {
               <CardContent className="p-4">
                 <div className="flex items-center gap-2 text-emerald-600 mb-2">
                   <CheckCircle className="w-4 h-4" />
-                  <span className="text-[10px] font-bold uppercase tracking-wider">Resolution Rate</span>
+                  <span className="text-[10px] font-bold uppercase tracking-wider">{t("mon.resolutionRate")}</span>
                 </div>
                 <p className="text-2xl font-bold text-dark-navy">{d.quality?.resolutionRate}%</p>
                 <p className="text-xs text-muted-foreground">{d.quality?.resolved} resolved</p>
@@ -99,7 +101,7 @@ export default function Monitoring() {
             <Card className="border-border shadow-sm">
               <CardContent className="p-4">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3 flex items-center gap-1.5">
-                  <CheckCircle className="w-3.5 h-3.5 text-emerald-500" /> Resolution Rate
+                  <CheckCircle className="w-3.5 h-3.5 text-emerald-500" /> {t("mon.resolutionRate")}
                 </h3>
                 <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
                   <div className="h-full bg-emerald-500 rounded-full transition-all" style={{ width: d.quality?.resolutionRate + '%' }} />
@@ -143,7 +145,7 @@ export default function Monitoring() {
                   })}
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground text-center py-8">No message data for this period</p>
+                <p className="text-sm text-muted-foreground text-center py-8">{t("mon.noData")}</p>
               )}
             </CardContent>
           </Card>
