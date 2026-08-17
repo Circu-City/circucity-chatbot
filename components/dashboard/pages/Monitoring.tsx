@@ -62,7 +62,7 @@ export default function Monitoring() {
                   <span className="text-[10px] font-bold uppercase tracking-wider">{t("mon.conversations")}</span>
                 </div>
                 <p className="text-2xl font-bold text-dark-navy">{d.totals?.conversations}</p>
-                <p className="text-xs text-muted-foreground">{d.totals?.messages} messages</p>
+                <p className="text-xs text-muted-foreground">{d.totals?.messages} {t("mon.messages")}</p>
               </CardContent>
             </Card>
             <Card className="border-border shadow-sm">
@@ -82,7 +82,7 @@ export default function Monitoring() {
                   <span className="text-[10px] font-bold uppercase tracking-wider">{t("mon.escalationRate")}</span>
                 </div>
                 <p className="text-2xl font-bold text-dark-navy">{d.quality?.escalationRate}%</p>
-                <p className="text-xs text-muted-foreground">{d.quality?.escalated} escalated</p>
+                <p className="text-xs text-muted-foreground">{d.quality?.escalated} {t("mon.escalated")}</p>
               </CardContent>
             </Card>
             <Card className="border-border shadow-sm">
@@ -92,7 +92,7 @@ export default function Monitoring() {
                   <span className="text-[10px] font-bold uppercase tracking-wider">{t("mon.resolutionRate")}</span>
                 </div>
                 <p className="text-2xl font-bold text-dark-navy">{d.quality?.resolutionRate}%</p>
-                <p className="text-xs text-muted-foreground">{d.quality?.resolved} resolved</p>
+                <p className="text-xs text-muted-foreground">{d.quality?.resolved} {t("mon.resolved")}</p>
               </CardContent>
             </Card>
           </div>
@@ -106,18 +106,18 @@ export default function Monitoring() {
                 <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
                   <div className="h-full bg-emerald-500 rounded-full transition-all" style={{ width: d.quality?.resolutionRate + '%' }} />
                 </div>
-                <p className="text-xs text-muted-foreground mt-2">{d.quality?.resolved} of {d.totals?.conversations} conversations resolved</p>
+                <p className="text-xs text-muted-foreground mt-2">{d.quality?.resolved} of {d.totals?.conversations} {t("mon.convResolved")}</p>
               </CardContent>
             </Card>
             <Card className="border-border shadow-sm">
               <CardContent className="p-4">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3 flex items-center gap-1.5">
-                  <TrendingUp className="w-3.5 h-3.5 text-rose-500" /> Negative Sentiment
+                  <TrendingUp className="w-3.5 h-3.5 text-rose-500" /> {t("mon.negativeSentiment")}
                 </h3>
                 <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
                   <div className="h-full bg-rose-500 rounded-full transition-all" style={{ width: d.quality?.negativeSentimentRate + '%' }} />
                 </div>
-                <p className="text-xs text-muted-foreground mt-2">{d.quality?.negativeSentimentRate}% of conversations</p>
+                <p className="text-xs text-muted-foreground mt-2">{d.quality?.negativeSentimentRate}% {t("mon.pctOfConversations")}</p>
               </CardContent>
             </Card>
           </div>
@@ -125,7 +125,7 @@ export default function Monitoring() {
           <Card className="border-border shadow-sm">
             <CardContent className="p-4">
               <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-4 flex items-center gap-1.5">
-                <Activity className="w-3.5 h-3.5" /> Daily Messages
+                <Activity className="w-3.5 h-3.5" /> {t("mon.dailyMessages")}
               </h3>
               {d.trends?.daily?.length > 0 ? (
                 <div className="h-32 flex items-end gap-1">

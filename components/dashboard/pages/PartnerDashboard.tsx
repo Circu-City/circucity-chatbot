@@ -159,11 +159,11 @@ export default function PartnerDashboard() {
   };
 
   const tabs: { id: Tab; label: string; icon: any }[] = [
-    { id: "overview", label: "Overview", icon: BarChart3 },
-    { id: "referrals", label: "Referrals", icon: Users },
-    { id: "commissions", label: "Commissions", icon: DollarSign },
-    { id: "payouts", label: "Payouts", icon: Wallet },
-    { id: "settings", label: "Settings", icon: Settings },
+    { id: "overview", label: t("nav.overview"), icon: BarChart3 },
+    { id: "referrals", label: t("tab.referrals"), icon: Users },
+    { id: "commissions", label: t("tab.commissions"), icon: DollarSign },
+    { id: "payouts", label: t("tab.payouts"), icon: Wallet },
+    { id: "settings", label: t("set.title"), icon: Settings },
   ];
 
   const statusColor = (status: string) => {
@@ -233,7 +233,7 @@ export default function PartnerDashboard() {
                 <Handshake className="w-16 h-16 mx-auto mb-4 text-lemon-green opacity-50" />
                 <h2 className="text-xl font-bold text-white mb-2">{t("partner.join")}</h2>
                 <p className="text-gray-400 mb-6 max-w-md mx-auto">
-                  Earn commissions by referring other businesses to CircuCity AI.
+                  {t("partner.earnDesc")}
                 </p>
                 <Button onClick={handleJoin} className="bg-lemon-gradient text-dark-navy font-bold shadow-lemon hover:opacity-90 gap-2">
                   <ExternalLink className="w-4 h-4" />
@@ -257,7 +257,7 @@ export default function PartnerDashboard() {
                 <Card className="bg-white border-gray-200 shadow-sm">
                   <CardContent className="p-4">
                     <div className="flex items-center gap-2 text-gray-500 text-sm mb-1">
-                      <DollarSign className="w-4 h-4" /> Total Earned
+                      <DollarSign className="w-4 h-4" /> {t("partner.totalEarned")}
                     </div>
                     <p className="text-2xl font-bold text-lemon-green">${(partner.totalEarned || 0).toFixed(2)}</p>
                   </CardContent>
@@ -265,7 +265,7 @@ export default function PartnerDashboard() {
                 <Card className="bg-white border-gray-200 shadow-sm">
                   <CardContent className="p-4">
                     <div className="flex items-center gap-2 text-gray-500 text-sm mb-1">
-                      <MousePointerClick className="w-4 h-4" /> Clicks
+                      <MousePointerClick className="w-4 h-4" /> {t("partner.clicks")}
                     </div>
                     <p className="text-2xl font-bold text-gray-900">{partner.clickCount || 0}</p>
                   </CardContent>
@@ -273,7 +273,7 @@ export default function PartnerDashboard() {
                 <Card className="bg-white border-gray-200 shadow-sm">
                   <CardContent className="p-4">
                     <div className="flex items-center gap-2 text-gray-500 text-sm mb-1">
-                      <TrendingUp className="w-4 h-4" /> Conversion Rate
+                      <TrendingUp className="w-4 h-4" /> {t("partner.conversionRate")}
                     </div>
                     <p className="text-2xl font-bold text-gray-900">{partner.conversionRate || 0}%</p>
                   </CardContent>
@@ -291,7 +291,7 @@ export default function PartnerDashboard() {
                     </div>
                     <Button onClick={copyReferralLink} className="bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200 gap-2 shrink-0">
                       {copied ? <Check className="w-4 h-4 text-lemon-green" /> : <Copy className="w-4 h-4" />}
-                      {copied ? "Copied" : "Copy Link"}
+                      {copied ? t("tmpl.copied") : t("partner.copyLink")}
                     </Button>
                   </div>
                 </CardContent>
@@ -303,7 +303,7 @@ export default function PartnerDashboard() {
                 </CardHeader>
                 <CardContent>
                   {commissions.length === 0 ? (
-                    <p className="text-gray-500 text-sm">No commissions yet. Share your referral link to start earning.</p>
+                    <p className="text-gray-500 text-sm">{t("partner.noCommissionsYet")}</p>
                   ) : (
                     <div className="space-y-3">
                       {commissions.slice(0, 5).map((c: any) => (
@@ -338,7 +338,7 @@ export default function PartnerDashboard() {
                     </div>
                     <Button onClick={copyReferralLink} className="bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200 gap-2 shrink-0">
                       {copied ? <Check className="w-4 h-4 text-lemon-green" /> : <Copy className="w-4 h-4" />}
-                      {copied ? "Copied" : "Copy Link"}
+                      {copied ? t("tmpl.copied") : t("partner.copyLink")}
                     </Button>
                   </div>
                 </CardContent>
@@ -393,7 +393,7 @@ export default function PartnerDashboard() {
                 <Card className="bg-white border-gray-200 shadow-sm">
                   <CardContent className="p-4">
                     <div className="flex items-center gap-2 text-amber-400 text-sm mb-1">
-                      <Clock className="w-4 h-4" /> Pending
+                      <Clock className="w-4 h-4" /> {t("partner.pending")}
                     </div>
                     <p className="text-2xl font-bold text-gray-900">${(commissionSummary?.pending || 0).toFixed(2)}</p>
                   </CardContent>
@@ -401,7 +401,7 @@ export default function PartnerDashboard() {
                 <Card className="bg-white border-gray-200 shadow-sm">
                   <CardContent className="p-4">
                     <div className="flex items-center gap-2 text-blue-400 text-sm mb-1">
-                      <CheckCircle2 className="w-4 h-4" /> Approved
+                      <CheckCircle2 className="w-4 h-4" /> {t("partner.approved")}
                     </div>
                     <p className="text-2xl font-bold text-gray-900">${(commissionSummary?.approved || 0).toFixed(2)}</p>
                   </CardContent>
@@ -409,7 +409,7 @@ export default function PartnerDashboard() {
                 <Card className="bg-white border-gray-200 shadow-sm">
                   <CardContent className="p-4">
                     <div className="flex items-center gap-2 text-lemon-green text-sm mb-1">
-                      <DollarSign className="w-4 h-4" /> Paid
+                      <DollarSign className="w-4 h-4" /> {t("partner.paid")}
                     </div>
                     <p className="text-2xl font-bold text-lemon-green">${(commissionSummary?.paid || 0).toFixed(2)}</p>
                   </CardContent>
@@ -432,7 +432,7 @@ export default function PartnerDashboard() {
                             <th className="text-left py-3 text-gray-400 font-medium">{t("bill.amount")}</th>
                             <th className="text-left py-3 text-gray-400 font-medium">{t("common.status")}</th>
                             <th className="text-left py-3 text-gray-400 font-medium">{t("common.date")}</th>
-                            <th className="text-left py-3 text-gray-400 font-medium">Paid At</th>
+                            <th className="text-left py-3 text-gray-400 font-medium">{t("partner.paidAt")}</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -471,7 +471,7 @@ export default function PartnerDashboard() {
                       disabled={balance < (config?.minPayout || 50)}
                     >
                       <Plus className="w-4 h-4" />
-                      Request Payout
+                      {t("partner.requestPayoutBtn")}
                     </Button>
                   </div>
                   {balance < (config?.minPayout || 50) && (
@@ -492,7 +492,7 @@ export default function PartnerDashboard() {
                     )}
                     <div className="space-y-4">
                       <div>
-                        <label className="text-sm text-gray-400 block mb-1">Amount (USD)</label>
+                        <label className="text-sm text-gray-400 block mb-1">{t("partner.amountUsd")}</label>
                         <Input
                           type="number"
                           step="0.01"
@@ -510,7 +510,7 @@ export default function PartnerDashboard() {
                           Submit Request
                         </Button>
                         <Button onClick={() => { setShowRequestPayout(false); setPayoutError(""); setPayoutSuccess(""); }} variant="ghost" className="text-gray-400 hover:text-white">
-                          Cancel
+                          {t("common.cancel")}
                         </Button>
                       </div>
                     </div>

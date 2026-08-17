@@ -266,7 +266,7 @@ export default function BookingPage() {
                 <button onClick={handleSave} disabled={saving}
                   className="px-6 py-2.5 rounded-xl bg-primary text-dark-navy font-bold text-sm hover:opacity-90 transition-all disabled:opacity-50 flex items-center gap-2">
                   {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : saved ? <CheckCircle2 className="w-4 h-4" /> : <RefreshCw className="w-4 h-4" />}
-                  {saving ? "Saving..." : saved ? "Saved!" : "Save Settings"}
+                  {saving ? t("book.saving") : saved ? t("book.saved") : t("book.saveSettings")}
                 </button>
               </div>
             </>

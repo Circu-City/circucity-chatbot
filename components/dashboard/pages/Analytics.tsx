@@ -67,10 +67,10 @@ export default function Analytics() {
   };
 
   const STATS = [
-    { label: "Total Messages", value: stats?.totalMessages?.toLocaleString() || "0", change: "+" + (stats?.conversationsThisMonth || 0) + " this month", icon: MessageSquare, color: "text-blue-600", bg: "bg-blue-50" },
-    { label: "Total Conversations", value: stats?.totalConversations?.toLocaleString() || "0", change: "+" + (stats?.resolvedCount || 0) + " resolved", icon: Users, color: "text-primary", bg: "bg-primary/10" },
+    { label: t("ana.totalMessages"), value: stats?.totalMessages?.toLocaleString() || "0", change: "+" + (stats?.conversationsThisMonth || 0) + " " + t("int.thisMonth"), icon: MessageSquare, color: "text-blue-600", bg: "bg-blue-50" },
+    { label: t("ana.totalConversations"), value: stats?.totalConversations?.toLocaleString() || "0", change: "+" + (stats?.resolvedCount || 0) + " resolved", icon: Users, color: "text-primary", bg: "bg-primary/10" },
     { label: "Conversion Rate", value: (stats?.conversionRate || 0) + "%", change: (stats?.resolutionRate || 0) + "% resolution", icon: Zap, color: "text-orange-600", bg: "bg-orange-50" },
-    { label: "Avg Response Time", value: stats?.avgResponseTime || "0s", change: "Live", icon: CheckCircle2, color: "text-green-600", bg: "bg-green-50" },
+    { label: t("ana.avgResponseTime"), value: stats?.avgResponseTime || "0s", change: t("ana.live"), icon: CheckCircle2, color: "text-green-600", bg: "bg-green-50" },
   ];
 
   return (
@@ -86,11 +86,11 @@ export default function Analytics() {
             <div className="flex items-center gap-2">
               <Button variant="outline" size="sm" className="gap-2" onClick={() => setShowDateMenu(!showDateMenu)}>
                 <Calendar className="w-4 h-4" />
-                {dateFilter === "7d" ? "Last 7 days" : dateFilter === "30d" ? "Last 30 days" : dateFilter === "90d" ? "Last 90 days" : "Custom"}
+                {dateFilter === "7d" ? "Last 7 days" : dateFilter === "30d" ? t("ana.last30Days") : dateFilter === "90d" ? "Last 90 days" : "Custom"}
               </Button>
               <Button variant="outline" size="sm" className="gap-2" onClick={handleExport} disabled={exportLoading || !stats}>
                 <Download className="w-4 h-4" />
-                {exportLoading ? "Exporting..." : "Export CSV"}
+                {exportLoading ? "Exporting..." : t("ana.exportCsv")}
               </Button>
             </div>
           </div>
@@ -137,7 +137,7 @@ export default function Analytics() {
                 </div>
               ) : (
                 <div className="h-64 flex items-center justify-center text-sm text-muted-foreground">
-                  No message data available yet.
+                  {t("ana.noData")}
                 </div>
               )}
             </CardContent>
@@ -149,7 +149,7 @@ export default function Analytics() {
                 <div className="p-4 bg-primary/5 rounded-xl border border-primary/10 flex items-start gap-3">
                   <MousePointer2 className="w-5 h-5 text-primary shrink-0" />
                   <p className="text-xs text-dark-navy">
-                    <span className="font-bold">Insight:</span> Your AI assistant has handled {stats?.totalConversations || 0} conversations with a {stats?.resolutionRate || "0"}% resolution rate.
+                    <span className="font-bold">{t("ana.insight")}</span> {t("ana.aiHandled")} {stats?.totalConversations || 0} {t("ana.convWith")} {stats?.resolutionRate || "0"}% {t("ana.pctResolution")}
                   </p>
                 </div>
               </div>

@@ -123,7 +123,7 @@ export default function Billing({ paymentSuccess }: { paymentSuccess?: boolean }
         day: "numeric", 
         year: "numeric" 
       })
-    : isFreePlan ? "No renewal (free plan)" : "N/A";
+    : isFreePlan ? t("bill.noRenewal") : "N/A";
 
   return (
     <Wrapper>
@@ -182,7 +182,7 @@ export default function Billing({ paymentSuccess }: { paymentSuccess?: boolean }
                 <p className="text-sm font-medium">{nextRenewal}</p>
               </div>
               <Button variant="outline" onClick={() => openPortal()} disabled={portalLoading} className="shrink-0 text-sm">
-                {portalLoading ? "Opening..." : "Manage"}
+                {portalLoading ? "Opening..." : t("bill.manage")}
               </Button>
             </div>
           </div>
@@ -230,7 +230,7 @@ export default function Billing({ paymentSuccess }: { paymentSuccess?: boolean }
                       onClick={() => handleSubscribe(plan.name)}
                     >
                       {checkoutLoading === plan.name ? "Redirecting..." : 
-                       isCurrent ? "Active Plan" : 
+                       isCurrent ? t("bill.activePlan") : 
                        plan.price === null ? "Contact Sales" :
                        "Choose " + plan.name}
                     </Button>

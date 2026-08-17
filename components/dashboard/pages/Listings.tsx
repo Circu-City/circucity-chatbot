@@ -40,7 +40,6 @@ type ListingDraft = {
 type ConnectorCard = {
   id: 'shopify' | 'woocommerce' | 'ebay' | 'etsy' | 'webhook';
   name: string;
-  desc: string;
   tier: string;
 };
 
@@ -52,12 +51,20 @@ const CATEGORIES = [
 ];
 
 const CONNECTORS: ConnectorCard[] = [
-  { id: 'shopify', name: 'Shopify', desc: 'OAuth connect — AI drafts publish as products in your Shopify admin.', tier: 'Growth' },
-  { id: 'woocommerce', name: 'WooCommerce', desc: 'REST key — creates draft products in your WooCommerce catalog.', tier: 'Growth' },
-  { id: 'ebay', name: 'eBay', desc: 'OAuth — creates priced offers in your eBay account (SE → EUR).', tier: 'Professional' },
-  { id: 'etsy', name: 'Etsy', desc: 'OAuth — creates drafts with your photos on Etsy (SEK).', tier: 'Professional' },
-  { id: 'webhook', name: 'Webhook / API', desc: 'Signed HTTP push of the full listing to any endpoint.', tier: 'Professional' },
+  { id: 'shopify', name: 'Shopify', tier: 'Growth' },
+  { id: 'woocommerce', name: 'WooCommerce', tier: 'Growth' },
+  { id: 'ebay', name: 'eBay', tier: 'Professional' },
+  { id: 'etsy', name: 'Etsy', tier: 'Professional' },
+  { id: 'webhook', name: 'Webhook / API', tier: 'Professional' },
 ];
+
+const CONNECTOR_DESC_KEYS: Record<string, string> = {
+  shopify: 'conn.shopifyOauth',
+  woocommerce: 'conn.wooRest',
+  ebay: 'conn.ebayOauth',
+  etsy: 'conn.etsyOauth',
+  webhook: 'conn.webhook',
+};
 
 const CSV_HEADERS = 'title,description,price,currency,category,condition,estimated_age,weight_kg,quantity,co2_saved_kg,attributes,image_data_url';
 
@@ -735,7 +742,7 @@ export default function ListingsAppPage() {
           <div className="p-2 bg-primary/10 rounded-lg text-primary"><Cable className="w-5 h-5" /></div>
           <div>
             <h3 className="font-bold text-dark-navy">{t("lst.connectStores")}</h3>
-            <p className="text-xs text-muted-foreground">Live connectors publish real drafts to your accounts. Analysed photos stay in this workspace.</p>
+            <p className="text-xs text-muted-foreground">{t("conn.liveDesc")}</p>
           </div>
         </div>
         {connectError && <p className="mb-3 rounded-xl bg-red-500/10 border border-red-500/30 px-4 py-2.5 text-sm text-red-600">{connectError}</p>}
@@ -754,10 +761,10 @@ export default function ListingsAppPage() {
                   )}
                 </div>
                 <h3 className="font-bold text-dark-navy mt-3">{connector.name}</h3>
-                <p className="text-xs text-muted-foreground mt-1">{connector.desc}</p>
+                <p className="text-xs text-muted-foreground mt-1">{t(CONNECTOR_DESC_KEYS[connector.id])}</p>
                 <div className="mt-4 space-y-2">
                   {!configured && connector.id !== 'woocommerce' && connector.id !== 'webhook' && (
-                    <p className="text-xs text-amber-600">Needs server config — developer credentials not added yet.</p>
+                    <p className="text-xs text-amber-600">{t("conn.needsConfig")}</p>
                   )}
                   {!connected && configured && connector.id === 'shopify' && (
                     <>
@@ -768,18 +775,18 @@ export default function ListingsAppPage() {
                         className="h-8 text-xs"
                       />
                       <Button size="sm" className="w-full gap-1.5" onClick={() => void connectOAuth('shopify')} disabled={connecting === 'shopify'}>
-                        {connecting === 'shopify' ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Connecting…</> : <>{t("lst.connectStore")}</>}
+                        {connecting === 'shopify' ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> {t("conn.connecting")}</> : <>{t("lst.connectStore")}</>}
                       </Button>
                     </>
                   )}
                   {!connected && configured && connector.id === 'ebay' && (
                     <Button size="sm" className="w-full gap-1.5" onClick={() => void connectOAuth('ebay')} disabled={connecting === 'ebay'}>
-                      {connecting === 'ebay' ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Connecting…</> : <>Connect eBay</>}
+                      {connecting === 'ebay' ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> {t("conn.connecting")}</> : <>Connect eBay</>}
                     </Button>
                   )}
                   {!connected && configured && connector.id === 'etsy' && (
                     <Button size="sm" className="w-full gap-1.5" onClick={() => void connectEtsy()} disabled={connecting === 'etsy'}>
-                      {connecting === 'etsy' ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Connecting…</> : <>Connect Etsy</>}
+                      {connecting === 'etsy' ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> {t("conn.connecting")}</> : <>Connect Etsy</>}
                     </Button>
                   )}
                   {!connected && connector.id === 'woocommerce' && (

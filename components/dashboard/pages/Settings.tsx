@@ -30,6 +30,16 @@ const TABS = [
   { id: "notifications", label: "Notifications", icon: Bell },
 ];
 
+const TAB_KEYS: Record<string, string> = {
+  profile: "tab.profile",
+  business: "set.businessProfile",
+  website: "set.websiteSource",
+  knowledge: "tab.knowledgeSources",
+  ai: "tab.aiSettings",
+  api: "tab.apiAccess",
+  notifications: "tab.notifications",
+};
+
 export default function SettingsPage() {
   const { t } = useDashboardI18n();
   const [org, setOrg] = useState<any>(null);
@@ -201,7 +211,7 @@ export default function SettingsPage() {
           <button key={tab.id} onClick={() => setActiveTab(tab.id)}
             className={cn("flex items-center gap-2 px-4 py-2 rounded-lg text-sm whitespace-nowrap transition-all font-medium",
               activeTab === tab.id ? "bg-white text-dark-navy shadow-sm" : "text-slate-500 hover:text-dark-navy hover:bg-white/50")}>
-            <tab.icon className="w-4 h-4" /> {tab.label}
+            <tab.icon className="w-4 h-4" /> {t(TAB_KEYS[tab.id])}
           </button>
         ))}
       </div>
@@ -225,7 +235,7 @@ export default function SettingsPage() {
           <div className="border-t border-border px-6 py-4 flex justify-end">
             <Button onClick={handleSaveProfile} disabled={saving} className="gap-2">
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              {saving ? "Saving..." : "Save Profile"}
+              {saving ? t("set.saving") : t("set.saveProfile")}
             </Button>
           </div>
         </Card>
@@ -253,7 +263,7 @@ export default function SettingsPage() {
           <div className="border-t border-border px-6 py-4 flex justify-end">
             <Button onClick={handleSaveWorkspace} disabled={saving} className="gap-2">
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              {saving ? "Saving..." : "Save Business Settings"}
+              {saving ? t("set.saving") : t("set.saveBusiness")}
             </Button>
           </div>
         </Card>
@@ -292,11 +302,11 @@ export default function SettingsPage() {
               ))}
               {faqs.length === 0 && <p className="text-sm text-muted-foreground">{t("set.noFaqs")}</p>}
               <div className="border-t pt-4 space-y-3">
-                <Input value={newFaqQ} onChange={(e) => setNewFaqQ(e.target.value)} placeholder="Question" />
+                <Input value={newFaqQ} onChange={(e) => setNewFaqQ(e.target.value)} placeholder={t("set.questionPlaceholder")} />
                 <textarea className="w-full px-3 py-2 border border-border rounded-md text-sm outline-none focus:ring-2 focus:ring-primary resize-none" rows={2} placeholder="Answer"
                   value={newFaqA} onChange={(e) => setNewFaqA(e.target.value)} />
                 <Button size="sm" onClick={handleAddFaq} disabled={knowledgeLoading || !newFaqQ.trim() || !newFaqA.trim()}>
-                  {knowledgeLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null} Add FAQ
+                  {knowledgeLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null} {t("kb.addFaq")}
                 </Button>
               </div>
             </CardContent>
@@ -316,7 +326,7 @@ export default function SettingsPage() {
                 <textarea className="w-full px-3 py-2 border border-border rounded-md text-sm outline-none focus:ring-2 focus:ring-primary resize-none" rows={4} placeholder="Document content..."
                   value={newDocContent} onChange={(e) => setNewDocContent(e.target.value)} />
                 <Button size="sm" onClick={handleAddDoc} disabled={knowledgeLoading || !newDocName.trim() || !newDocContent.trim()}>
-                  {knowledgeLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null} Add Document
+                  {knowledgeLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null} {t("kb.addDocument")}
                 </Button>
               </div>
             </CardContent>
@@ -336,7 +346,7 @@ export default function SettingsPage() {
                 </select></div>
               <div className="space-y-2"><label className="text-sm font-medium text-dark-navy">{t("set.tone")}</label>
                 <select className="w-full px-3 py-2 bg-white border border-border rounded-md text-sm outline-none" value={wsForm.tone} onChange={(e) => setWsForm({ ...wsForm, tone: e.target.value })}>
-                  <option value="professional">{t("set.professional")}</option><option value="friendly">{t("set.friendly")}</option><option value="casual">{t("set.casual")}</option><option value="formal">Formal</option>
+                  <option value="professional">{t("set.professional")}</option><option value="friendly">{t("set.friendly")}</option><option value="casual">{t("set.casual")}</option><option value="formal">{t("set.formal")}</option>
                 </select></div>
               <div className="md:col-span-2 space-y-2"><label className="text-sm font-medium text-dark-navy">Greeting Message</label>
                 <Input value={wsForm.greetingMessage} onChange={(e) => setWsForm({ ...wsForm, greetingMessage: e.target.value })} placeholder="Hi! How can I help you today?" /></div>
@@ -357,7 +367,7 @@ export default function SettingsPage() {
           <div className="border-t border-border px-6 py-4 flex justify-end">
             <Button onClick={handleSaveWorkspace} disabled={saving} className="gap-2">
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              {saving ? "Saving..." : "Save AI Settings"}
+              {saving ? t("set.saving") : t("set.saveAi")}
             </Button>
           </div>
         </Card>
@@ -400,7 +410,7 @@ export default function SettingsPage() {
             <div className="border-t border-border px-6 py-4 flex justify-end">
               <Button onClick={handleSaveNotifications} disabled={saving} className="gap-2">
                 {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                {saving ? "Saving..." : "Save Notification Settings"}
+                {saving ? t("set.saving") : t("set.saveNotifications")}
               </Button>
             </div>
           </Card>

@@ -102,7 +102,7 @@ export default function Team() {
             <h2 className="text-2xl font-bold text-dark-navy">{t("team.title")}</h2>
             <Button onClick={() => setShowInvite(true)} className="gap-1.5">
               <UserPlus className="w-4 h-4" />
-              Invite Member
+              {t("team.inviteMemberShort")}
             </Button>
           </div>
 
@@ -114,7 +114,7 @@ export default function Team() {
                 <p className="text-sm text-muted-foreground mb-4">{t("team.collabDesc")}</p>
                 <Button onClick={() => setShowInvite(true)} className="gap-1.5">
                   <UserPlus className="w-4 h-4" />
-                  Invite Member
+                  {t("team.inviteMemberShort")}
                 </Button>
               </CardContent>
             </Card>
@@ -171,7 +171,7 @@ export default function Team() {
               <div className="space-y-4">
                 <div>
                   <span className="text-xs font-medium text-muted-foreground mb-1 block">{t("team.email")}</span>
-                  <Input type="email" value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} placeholder="colleague@company.com" />
+                  <Input type="email" value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} placeholder={t("team.invitePlaceholder")} />
                 </div>
                 <div>
                   <span className="text-xs font-medium text-muted-foreground mb-1 block">{t("team.role")}</span>
@@ -183,7 +183,7 @@ export default function Team() {
                 </div>
                 <Button className="w-full" onClick={inviteMember} disabled={!inviteEmail || sending}>
                   {sending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-                  {sending ? "Sending Invite..." : "Send Invitation"}
+                  {sending ? t("team.sendingInvite") : t("team.sendInvitation")}
                 </Button>
               </div>
             </div>

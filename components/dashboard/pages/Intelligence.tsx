@@ -38,6 +38,21 @@ const SUB_TABS = [
   { id: "ask", label: "Ask AI", icon: Brain },
 ];
 
+const SUB_TAB_KEYS: Record<string, string> = {
+  summary: "tab.summary",
+  products: "int.productInterests",
+  intents: "int.intentBreakdown",
+  sentiment: "tab.sentiment",
+  unanswered: "unanswered.title",
+  funnel: "tab.funnel",
+  recommendations: "tab.recommendations",
+  transcripts: "int.transcripts",
+  events: "tab.events",
+  alerts: "int.alerts",
+  system: "tab.system",
+  ask: "tab.askAi",
+};
+
 type AlertItem = { message: string; severity: "info" | "warning" | "critical"; timestamp?: string };
 
 export default function Intelligence() {
@@ -210,9 +225,9 @@ export default function Intelligence() {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {[
               { label: t("mon.conversations"), value: summary.total_conversations ?? 0, icon: MessageSquare, color: "text-blue-600", bg: "bg-blue-50" },
-              { label: "Messages", value: summary.total_messages ?? 0, icon: Activity, color: "text-primary", bg: "bg-primary/10" },
-              { label: "Unique Visitors", value: summary.unique_visitors ?? 0, icon: Users, color: "text-emerald-600", bg: "bg-emerald-50" },
-              { label: "Returning", value: summary.returning_visitors ?? 0, icon: RotateCcw, color: "text-purple-600", bg: "bg-purple-50" },
+              { label: t("int.messages"), value: summary.total_messages ?? 0, icon: Activity, color: "text-primary", bg: "bg-primary/10" },
+              { label: t("int.uniqueVisitors"), value: summary.unique_visitors ?? 0, icon: Users, color: "text-emerald-600", bg: "bg-emerald-50" },
+              { label: t("int.returning"), value: summary.returning_visitors ?? 0, icon: RotateCcw, color: "text-purple-600", bg: "bg-purple-50" },
             ].map((stat, i) => {
               const Icon = stat.icon;
               return (
@@ -242,7 +257,7 @@ export default function Intelligence() {
                 );
               })}
               {alertsList.length > 5 && (
-                <Badge variant="outline" className="text-xs text-muted-foreground">+{alertsList.length - 5} more</Badge>
+                <Badge variant="outline" className="text-xs text-muted-foreground">+{alertsList.length - 5} {t("int.more")}</Badge>
               )}
             </div>
           )}
@@ -263,7 +278,7 @@ export default function Intelligence() {
                   )}
                 >
                   <Icon className="w-3.5 h-3.5" />
-                  {tab.label}
+                  {t(SUB_TAB_KEYS[tab.id])}
                 </button>
               );
             })}
@@ -308,7 +323,7 @@ export default function Intelligence() {
                             <span className="text-sm font-medium text-dark-navy">{p.product_name}</span>
                           </div>
                           <div className="flex items-center gap-3">
-                            <Badge variant="outline" className="text-xs">{p.mention_count} mentions</Badge>
+                            <Badge variant="outline" className="text-xs">{p.mention_count} {t("int.mentions")}</Badge>
                             {p.category && <span className="text-xs text-muted-foreground">{p.category}</span>}
                           </div>
                         </div>
@@ -460,7 +475,7 @@ export default function Intelligence() {
                               <p className="text-xs text-muted-foreground mt-1">{r.reason || r.description}</p>
                               {r.impact && (
                                 <Badge variant="outline" className="mt-2 text-[10px] text-emerald-600 border-emerald-200 bg-emerald-50">
-                                  {r.impact} impact
+                                  {r.impact} {t("int.impact")}
                                 </Badge>
                               )}
                             </div>
@@ -481,31 +496,31 @@ export default function Intelligence() {
                     <h3 className="font-semibold text-dark-navy text-lg">{t("int.transcripts")}</h3>
                     <Button variant="outline" size="sm" className="gap-1.5" onClick={() => fetchIntelligence("transcripts").then(d => { if (d) setTranscripts(d); })}>
                       <RefreshCw className="w-3.5 h-3.5" />
-                      Refresh
+                      {t("int.refresh")}
                     </Button>
                   </div>
                   {transcripts?.transcripts?.length > 0 ? (
                     <div className="divide-y divide-border">
-                      {transcripts.transcripts.map((t: any, i: number) => (
+                      {transcripts.transcripts.map((tr: any, i: number) => (
                         <details key={i} className="py-3 group">
                           <summary className="flex items-center justify-between cursor-pointer text-sm">
                             <div className="flex items-center gap-2">
                               <MessageCircle className="w-4 h-4 text-primary shrink-0" />
-                              <span className="font-medium text-dark-navy">{t.first_message?.slice(0, 60)}...</span>
+                              <span className="font-medium text-dark-navy">{tr.first_message?.slice(0, 60)}...</span>
                             </div>
                             <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                              <Badge variant="outline" className="text-[10px]">{t.message_count} msgs</Badge>
-                              {t.started_at && <span>{new Date(t.started_at).toLocaleDateString()}</span>}
+                              <Badge variant="outline" className="text-[10px]">{tr.message_count} {t("int.msgs")}</Badge>
+                              {tr.started_at && <span>{new Date(tr.started_at).toLocaleDateString()}</span>}
                             </div>
                           </summary>
                           <div className="mt-3 ml-6 space-y-2">
-                            {t.messages?.map((m: any, j: number) => (
+                            {tr.messages?.map((m: any, j: number) => (
                               <div key={j} className="p-2.5 bg-slate-50 rounded-lg text-sm">
                                 <span className="text-[10px] font-bold text-muted-foreground uppercase">{m.role}</span>
                                 <p className="text-dark-navy mt-0.5">{m.content}</p>
                               </div>
                             ))}
-                            {(!t.messages || t.messages.length === 0) && (
+                            {(!tr.messages || tr.messages.length === 0) && (
                               <p className="text-xs text-muted-foreground">{t("int.noMessages")}</p>
                             )}
                           </div>
@@ -528,7 +543,7 @@ export default function Intelligence() {
                     <h3 className="font-semibold text-dark-navy text-lg">{t("int.systemEvents")}</h3>
                     <Button variant="outline" size="sm" className="gap-1.5" onClick={() => fetchIntelligence("events").then(d => { if (d) setEvents(d); })}>
                       <RefreshCw className="w-3.5 h-3.5" />
-                      Refresh
+                      {t("int.refresh")}
                     </Button>
                   </div>
                   {events?.events?.length > 0 ? (
@@ -601,7 +616,7 @@ export default function Intelligence() {
                     <h3 className="font-semibold text-dark-navy text-lg">{t("int.systemStatus")}</h3>
                     <Button variant="outline" size="sm" className="gap-1.5" onClick={() => fetchIntelligence("system/integrity").then(d => { if (d) setSystemStatus(d); })}>
                       <RefreshCw className="w-3.5 h-3.5" />
-                      Refresh
+                      {t("int.refresh")}
                     </Button>
                   </div>
 
@@ -617,7 +632,7 @@ export default function Intelligence() {
                             <AlertTriangle className="w-4 h-4 text-red-500" />
                           )}
                           <span className={cn("text-sm font-medium", systemStatus.clean ? "text-emerald-700" : "text-red-700")}>
-                            {systemStatus.clean ? "Database is healthy" : `${systemStatus.issues?.length || 0} issue(s) found`}
+                            {systemStatus.clean ? t("int.dbHealthy") : `${systemStatus.issues?.length || 0} ${t("int.issuesFound")}`}
                           </span>
                         </div>
                         {systemStatus.issues?.length > 0 && (
@@ -629,7 +644,7 @@ export default function Intelligence() {
                         )}
                         <div className="flex items-center gap-2 mt-2">
                           <Badge variant="outline" className="text-[10px] text-muted-foreground">
-                            Last backup: {systemStatus.backup_path ? systemStatus.backup_path.split("/").pop() : "Never"}
+                            {t("int.lastBackup")} {systemStatus.backup_path ? systemStatus.backup_path.split("/").pop() : t("ov.never")}
                           </Badge>
                           <Button variant="outline" size="sm" className="text-xs gap-1.5" onClick={handleBackup}>
                             <RefreshCw className="w-3 h-3" />
@@ -702,7 +717,7 @@ export default function Intelligence() {
                   <p className="text-xs text-muted-foreground">Ask natural language questions about your customer conversations and business performance.</p>
                   <div className="flex gap-2">
                     <Input
-                      placeholder="e.g. What are customers asking about most?"
+                      placeholder={t("int.askPlaceholder")}
                       value={askQuestion}
                       onChange={(e) => setAskQuestion(e.target.value)}
                       onKeyDown={(e) => { if (e.key === "Enter") handleAsk(); }}
@@ -710,7 +725,7 @@ export default function Intelligence() {
                     />
                     <Button onClick={handleAsk} disabled={askLoading || !askQuestion.trim()} className="gap-2">
                       {askLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                      Ask
+                      {t("int.ask")}
                     </Button>
                   </div>
                   {askAnswer && (

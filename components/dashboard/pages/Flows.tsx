@@ -102,7 +102,7 @@ export default function Flows() {
             <h2 className="text-2xl font-bold text-dark-navy">{t("flows.title")}</h2>
             <Button size="sm" className="gap-2" onClick={() => { setEditingFlow({ id: "", name: "", description: "", active: true, trigger: "new_conversation", steps: [], createdAt: "", updatedAt: "" }); setShowEditor(true); }}>
               <Plus className="w-4 h-4" />
-              New Flow
+              {t("flows.newFlow")}
             </Button>
           </div>
 
@@ -111,10 +111,10 @@ export default function Flows() {
               <CardContent className="p-12 text-center">
                 <GitBranch className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-bold text-dark-navy mb-2">{t("flows.noFlows")}</h3>
-                <p className="text-sm text-muted-foreground mb-4">Create your first automation flow to handle conversations.</p>
+                <p className="text-sm text-muted-foreground mb-4">{t("flows.noFlowsDesc")}</p>
                 <Button size="sm" className="gap-2" onClick={() => { setEditingFlow({ id: "", name: "", description: "", active: true, trigger: "new_conversation", steps: [], createdAt: "", updatedAt: "" }); setShowEditor(true); }}>
                   <Plus className="w-4 h-4" />
-                  Create Flow
+                  {t("flows.createFlow")}
                 </Button>
               </CardContent>
             </Card>
@@ -160,7 +160,7 @@ export default function Flows() {
             <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
               <div className="bg-background rounded-xl border border-border w-full max-w-2xl max-h-[90vh] overflow-y-auto">
                 <div className="p-6 border-b border-border flex items-center justify-between">
-                  <h3 className="font-semibold text-dark-navy">{editingFlow.id ? "Edit Flow" : "New Flow"}</h3>
+                  <h3 className="font-semibold text-dark-navy">{editingFlow.id ? t("flows.editFlow") : t("flows.newFlow")}</h3>
                   <Button variant="ghost" size="icon" onClick={() => setShowEditor(false)}>
                     <X className="w-4 h-4" />
                   </Button>
@@ -194,7 +194,7 @@ export default function Flows() {
                   <Button variant="outline" size="sm" onClick={() => setShowEditor(false)}>{t("flows.cancel")}</Button>
                   <Button size="sm" className="gap-2" onClick={handleSave} disabled={saving || !editingFlow.name}>
                     <Save className="w-4 h-4" />
-                    {saving ? "Saving..." : "Save"}
+                    {saving ? t("flows.saving") : t("flows.save")}
                   </Button>
                 </div>
               </div>
