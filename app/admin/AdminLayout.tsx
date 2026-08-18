@@ -26,6 +26,7 @@ import {
   Building2,
   Handshake,
   Briefcase,
+  ClipboardList,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ImpersonationBanner from "@/components/ImpersonationBanner";
@@ -47,6 +48,8 @@ const navItems = [
   { id: "knowledge", label: "Knowledge Base", icon: BookOpen, href: "/admin/knowledge" },
   { id: "unanswered", label: "Unanswered", icon: HelpCircle, href: "/admin/unanswered" },
   { id: "partner-applications", label: "Partner Applications", icon: Handshake, href: "/admin/partner-applications" },
+  { id: "partners", label: "Partners", icon: TrendingUp, href: "/admin/partners" },
+  { id: "staff", label: "Staff & Leads", icon: ClipboardList, href: "/admin/staff" },
   { id: "metrics", label: "Metrics", icon: TrendingUp, href: "/admin/metrics" },
   { id: "jobs", label: "Jobs", icon: Briefcase, href: "/admin/jobs" },
 ];

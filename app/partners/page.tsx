@@ -7,8 +7,8 @@ import { ArrowRight, Group, Handshake, Megaphone, TrendingUp, HeadphonesIcon, Bo
 
 const programs = [
   { slug: 'agency', title: 'Agency Partners', icon: Group, desc: 'Ideal for ecommerce, web development, marketing, and AI implementation agencies who refer, implement, or resell CircuCity AI for their clients.', revenue: 'Up to 25% revenue share', link: '/partners/agency' },
-  { slug: 'affiliate', title: 'Affiliate Partners', icon: Megaphone, desc: 'Tailor made for influencers, content creators, bloggers, or businesses that want to promote CircuCity AI within their communities or followers.', revenue: 'Up to 30% commission', link: '/partners/affiliate' },
-  { slug: 'ambassador', title: 'Ambassadors', icon: Handshake, desc: 'The simplest way for existing users to refer friends and earn a flat reward - no affiliate links or extra marketing required.', revenue: 'Up to $3,000 per referral', link: '/partners/ambassador' },
+  { slug: 'affiliate', title: 'Global Sales Partner', icon: Megaphone, desc: 'Tailor made for influencers, content creators, bloggers, or businesses that want to promote CircuCity AI within their communities or followers.', revenue: 'Up to 30% commission', link: '/partners/affiliate' },
+  { slug: 'ambassador', title: 'Ambassadors', icon: Handshake, desc: 'The simplest way for existing users to refer friends and earn a flat reward - no referral links or extra marketing required.', revenue: 'Up to $3,000 per referral', link: '/partners/ambassador' },
 ];
 
 const benefits = [

@@ -8,7 +8,7 @@ import { ArrowRight, CheckCircle2, Building2, Megaphone, Handshake, Send, Loader
 
 const programs = [
   { value: 'agency', label: 'Agency Partner', icon: Building2 },
-  { value: 'affiliate', label: 'Affiliate Partner', icon: Megaphone },
+  { value: 'affiliate', label: 'Global Sales Partner', icon: Megaphone },
   { value: 'ambassador', label: 'Ambassador', icon: Handshake },
 ];
 

@@ -40,6 +40,14 @@ export async function signUp(data: { email: string; password: string; name?: str
     image: user.image,
   };
 
+  if (user.role !== "customer") {
+    try {
+      await prisma.staffActivity.create({
+        data: { userId: user.id, action: "login", details: `${user.name || user.email} signed in` },
+      });
+    } catch {}
+  }
+
   const token = createToken(session);
   const cookieStore = await cookies();
   cookieStore.set("session", token, {

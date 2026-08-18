@@ -10,7 +10,7 @@ const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'nassershangwe@gmail.com';
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    await requireAdmin();
+    const admin = await requireAdmin();
     const { action } = await req.json();
     if (!action || !['approve', 'reject'].includes(action)) {
       return NextResponse.json({ success: false, error: 'Invalid action' }, { status: 400 });
@@ -26,6 +26,12 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
         where: { id: partner.id },
         data: { status: 'approved' },
       });
+
+      try {
+        await prisma.staffActivity.create({
+          data: { userId: admin.id, action: "partner_approved", details: `${partner.firstName || ''} ${partner.lastName || ''} (${partner.email || ''}) approved` },
+        });
+      } catch {}
 
       const programLabel = partner.type ? partner.type.charAt(0).toUpperCase() + partner.type.slice(1) : 'Partner';
       const name = `${partner.firstName || ''} ${partner.lastName || ''}`.trim();

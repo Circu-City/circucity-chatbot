@@ -6,7 +6,7 @@ import MarketingShell from '@/components/marketing/MarketingShell';
 import { ArrowRight, ThumbsUp, Users, TrendingUp, Star, Quote, ShoppingCart, Zap, Monitor, Globe } from 'lucide-react';
 
 const steps = [
-  { icon: ThumbsUp, title: 'Join the program', desc: 'Register for free as an affiliate and wait to be approved.' },
+  { icon: ThumbsUp, title: 'Join the program', desc: 'Register for free as a Global Sales Partner and wait to be approved.' },
   { icon: Users, title: 'Promote CircuCity AI', desc: 'Advertise our products on your website and social media.' },
   { icon: TrendingUp, title: 'Earn money', desc: 'Get up to 30% commissions in monthly payments.' },
 ];
@@ -29,17 +29,17 @@ export default function AffiliatePage() {
     <MarketingShell>
       <section className="py-24 px-6 bg-gradient-to-b from-[#FAFAFA] to-white text-center">
         <div className="max-w-4xl mx-auto">
-          <span className="text-xs font-bold uppercase tracking-[0.15em] text-[#A3E635] mb-4 block">Affiliate Program</span>
+          <span className="text-xs font-bold uppercase tracking-[0.15em] text-[#A3E635] mb-4 block">Global Sales Partner Program</span>
           <h1 className="text-4xl sm:text-5xl font-extrabold text-[#0A1428] leading-tight mb-4">
-            Join Affiliate Program.{' '}
+            Join Global Sales Partner Program.{' '}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#A3E635] to-[#9EF01A]">Get up to 30% commission</span>
           </h1>
           <p className="text-gray-500 text-lg max-w-2xl mx-auto mb-8">
-            Become an affiliate and enjoy easy, substantial commissions from one of the best programs available.
+            Become a Global Sales Partner and enjoy easy, substantial commissions from one of the best programs available.
           </p>
           <Link href="/partners/apply?program=affiliate"
             className="inline-flex items-center gap-2 bg-[#0A1428] text-white px-6 py-3 rounded-xl font-semibold text-sm hover:bg-[#1a2744] transition-all">
-            Become an Affiliate <ArrowRight className="w-4 h-4" />
+            Become a Global Sales Partner <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
       </section>
@@ -120,10 +120,10 @@ export default function AffiliatePage() {
           <h2 className="text-3xl sm:text-4xl font-extrabold text-white leading-tight mb-4">
             Start earning today
           </h2>
-          <p className="text-gray-400 max-w-lg mx-auto mb-8">Join our affiliate program and start earning up to 30% commission on every sale you refer.</p>
+          <p className="text-gray-400 max-w-lg mx-auto mb-8">Join our Global Sales Partner program and start earning up to 30% commission on every sale you refer.</p>
           <Link href="/partners/apply?program=affiliate"
             className="bg-[#A3E635] hover:bg-[#8DC92E] text-[#0A1428] font-semibold rounded-xl h-12 px-8 text-base shadow-xl shadow-[#A3E635]/20 transition-all inline-flex items-center">
-            Become an Affiliate <ArrowRight className="ml-2 w-4 h-4" />
+            Become a Global Sales Partner <ArrowRight className="ml-2 w-4 h-4" />
           </Link>
         </div>
       </section>

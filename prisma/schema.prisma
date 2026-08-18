@@ -31,6 +31,9 @@ model User {
   stores           Store[]
   supportTickets   SupportTicket[]
   teamMembers      TeamMember[]
+  staffMessagesSent       StaffMessage[]      @relation("StaffMessagesSent")
+  staffMessagesReceived   StaffMessage[]      @relation("StaffMessagesReceived")
+  staffActivities         StaffActivity[]
 
   @@index([email])
   @@index([role])
@@ -94,6 +97,9 @@ model Store {
   metadata              String?
   ownershipVerified     Boolean         @default(false)
   verifiedAt            DateTime?
+  // Comma-separated hostnames authorized to use this store's widget apiKey.
+  // Supports "*.example.com". Empty/null = unconfigured (served, but logged).
+  allowedDomains        String?
   apiKeys               ApiKey[]
   channels              Channel[]
   conversations         Conversation[]
@@ -541,6 +547,7 @@ model Partner {
   commissions       PartnerCommission[]
   payouts           PartnerPayout[]
   referrals         PartnerReferral[]
+  messages          PartnerMessage[]
 
   @@index([storeId])
   @@index([userId])
@@ -709,4 +716,44 @@ model ListingRecord {
   @@index([storeId, createdAt])
   @@index([userId, createdAt])
   @@index([platform])
+}
+
+
+model StaffMessage {
+  id          String   @id @default(cuid())
+  senderId    String
+  recipientId String
+  body        String
+  readAt      DateTime?
+  createdAt   DateTime @default(now())
+  sender      User     @relation("StaffMessagesSent", fields: [senderId], references: [id], onDelete: Cascade)
+  recipient   User     @relation("StaffMessagesReceived", fields: [recipientId], references: [id], onDelete: Cascade)
+
+  @@index([senderId])
+  @@index([recipientId])
+  @@index([createdAt])
+}
+
+model StaffActivity {
+  id        String   @id @default(cuid())
+  userId    String
+  action    String
+  details   String?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model PartnerMessage {
+  id        String   @id @default(cuid())
+  partnerId String
+  subject   String
+  body      String
+  createdAt DateTime @default(now())
+  partner   Partner  @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+
+  @@index([partnerId])
+  @@index([createdAt])
 }

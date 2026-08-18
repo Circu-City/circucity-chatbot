@@ -73,6 +73,15 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    try {
+      const sys = await prisma.user.findFirst({ where: { role: 'admin' }, select: { id: true } });
+      if (sys) {
+        await prisma.staffActivity.create({
+          data: { userId: sys.id, action: "partner_applied", details: `${firstName} ${lastName} (${email}) applied as ${program}` },
+        });
+      }
+    } catch {}
+
     // Best-effort admin notification
     let adminNotified = false;
     try {

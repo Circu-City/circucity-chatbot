@@ -578,7 +578,7 @@ export default function PartnerDashboardPage() {
                   <div>
                     <label className="text-sm text-gray-400 block mb-1">Partner Type</label>
                     <select name="type" defaultValue={partner.type} className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#A3E635]/50">
-                      <option value="affiliate">Affiliate</option>
+                      <option value="affiliate">Global Sales Partner</option>
                       <option value="agency">Agency</option>
                       <option value="ambassador">Ambassador</option>
                     </select>
