@@ -41,8 +41,10 @@ import {
 import { checkChatMessageForFlows } from "@/lib/flows/engine";
 import {
   checkRateLimit,
+  checkWidgetOrigin,
   extractPdfText,
   isDuplicateRequest,
+  originForbiddenResponseBody,
   trackWidgetEvent,
 } from "@/lib/widget-api";
 
@@ -324,16 +326,36 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid API key or inactive workspace" }, { status: 401, headers: getCorsHeaders(request.headers.get("origin")) });
     }
 
+    // The apiKey is public — it ships in the embed snippet on the merchant's
+    // page — so resolving a store from it proves nothing about who is calling.
+    // /api/widget/* already gates on the merchant's registered domains; this is
+    // the route that spends tokens and serves tenant knowledge, so it has to
+    // gate too. No allowUnknownHost here: this is a data route, and a store with
+    // domains configured should not answer a caller we cannot identify.
+    // Stores with nothing configured stay served (checkWidgetOrigin fails open
+    // and logs), so no existing embed breaks when this ships.
+    const originDecision = checkWidgetOrigin(
+      store,
+      request.headers.get("origin"),
+      request.headers.get("referer"),
+    );
+    if (!originDecision.allowed) {
+      return NextResponse.json(
+        originForbiddenResponseBody(originDecision.host),
+        { status: 403, headers: getCorsHeaders(request.headers.get("origin")) },
+      );
+    }
+
     storeIdForErrors = store.id;
 
-    if (!checkRateLimit(`chat:${store.id}`, 40, 60_000)) {
+    if (!(await checkRateLimit(`chat:${store.id}`, 40, 60_000))) {
       return NextResponse.json(
         { error: "Too many requests. Please try again shortly.", reply: "Chat is busy right now. Please try again shortly." },
         { status: 429, headers: getCorsHeaders(request.headers.get("origin")) },
       );
     }
 
-    if (!checkRateLimit(`chat-session:${sessionId}`, 20, 60_000)) {
+    if (!(await checkRateLimit(`chat-session:${sessionId}`, 20, 60_000))) {
       return NextResponse.json(
         { error: "Too many messages in this session.", reply: "You're sending messages too quickly. Please wait a moment." },
         { status: 429, headers: getCorsHeaders(request.headers.get("origin")) },
