@@ -42,6 +42,26 @@
     console.warn("[Gavriel AI] Missing data-store-id or data-api-key attribute on embed script.");
   }
 
+  // This widget renders into the host merchant's page, not a sandboxed iframe, so
+  // anything derived from an API response must be escaped before it reaches innerHTML.
+  function escHtml(value) {
+    return String(value == null ? "" : value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  // Only http(s) and protocol-relative URLs may reach an href/src attribute.
+  // Blocks javascript:, data:, vbscript: and friends.
+  function safeUrl(value) {
+    var raw = String(value == null ? "" : value).trim();
+    if (!raw) return "";
+    if (/^\s*(?:https?:)?\/\//i.test(raw) || raw.charAt(0) === "/") return raw;
+    return "";
+  }
+
   // Session ID persistence
   var SESSION_KEY = "gavriel_session_id_" + (API_KEY || "default");
   var sessionId = localStorage.getItem(SESSION_KEY);
@@ -498,16 +518,17 @@
         var p = products[i];
         var card = document.createElement("div");
         card.className = "gavriel-product-card";
-        var imgHtml = p.image || p.img ? '<img class="gavriel-product-img" src="' + (p.image || p.img) + '" alt="" />' : '';
-        var priceHtml = p.price || p.p ? formatCurrency(p.price || p.p, p.currency || p.c) : '';
-        var linkUrl = p.url || p.u || "#";
+        var imgSrc = safeUrl(p.image || p.img);
+        var imgHtml = imgSrc ? '<img class="gavriel-product-img" src="' + escHtml(imgSrc) + '" alt="" />' : '';
+        var priceHtml = p.price || p.p ? escHtml(formatCurrency(p.price || p.p, p.currency || p.c)) : '';
+        var linkUrl = safeUrl(p.url || p.u) || "#";
 
         card.innerHTML = imgHtml +
           '<div class="gavriel-product-details">' +
-            '<div class="gavriel-product-title">' + (p.name || p.n || "Product") + '</div>' +
+            '<div class="gavriel-product-title">' + escHtml(p.name || p.n || "Product") + '</div>' +
             '<div class="gavriel-product-price">' + priceHtml + '</div>' +
           '</div>' +
-          '<a class="gavriel-view-btn" href="' + linkUrl + '" target="_blank">View Item</a>';
+          '<a class="gavriel-view-btn" href="' + escHtml(linkUrl) + '" target="_blank" rel="noopener noreferrer nofollow">View Item</a>';
         msgDiv.appendChild(card);
       }
     }
@@ -554,16 +575,17 @@
               var p = data.products[i];
               var card = document.createElement("div");
               card.className = "gavriel-product-card";
-              var imgHtml = p.image ? '<img class="gavriel-product-img" src="' + p.image + '" alt="" />' : '';
-              var priceHtml = p.price ? p.price : '';
-              var linkUrl = p.url || "#";
+              var imgSrc = safeUrl(p.image);
+              var imgHtml = imgSrc ? '<img class="gavriel-product-img" src="' + escHtml(imgSrc) + '" alt="" />' : '';
+              var priceHtml = p.price ? escHtml(p.price) : '';
+              var linkUrl = safeUrl(p.url) || "#";
 
               card.innerHTML = imgHtml +
                 '<div class="gavriel-product-details">' +
-                  '<div class="gavriel-product-title">' + (p.name || "Product") + '</div>' +
+                  '<div class="gavriel-product-title">' + escHtml(p.name || "Product") + '</div>' +
                   '<div class="gavriel-product-price">' + priceHtml + '</div>' +
                 '</div>' +
-                '<a class="gavriel-view-btn" href="' + linkUrl + '" target="_blank">View Item</a>';
+                '<a class="gavriel-view-btn" href="' + escHtml(linkUrl) + '" target="_blank" rel="noopener noreferrer nofollow">View Item</a>';
               botMsgEl.appendChild(card);
             }
           }

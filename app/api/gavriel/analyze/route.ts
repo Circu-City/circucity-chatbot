@@ -108,19 +108,13 @@ export async function POST(req: Request) {
       );
     }
 
-    // 3. Quota & Subscription Check
+    // 3. Entitlement & Quota Check
     const user = await prisma.user.findUnique({
       where: { id: session.id },
       include: {
         stores: {
-          include: {
-            subscriptions: {
-              where: { status: { in: ["active", "trialing"] } },
-              orderBy: { createdAt: "desc" },
-              take: 1,
-            },
-          },
-          take: 1,
+          select: { id: true },
+          orderBy: { createdAt: "asc" },
         },
       },
     });
@@ -129,12 +123,35 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: "User account not found." }, { status: 404 });
     }
 
-    // Determine current plan
-    const activeSub = user.stores?.[0]?.subscriptions?.[0];
-    const plan = activeSub?.plan?.toLowerCase() || "free";
-    const quotaLimit = TIER_QUOTAS[plan] ?? 15;
+    const storeIds = user.stores.map((s) => s.id);
 
-    // Calculate usage in the current 30-day billing window
+    // Gavriel is billed as its own product. The Stripe webhook writes the purchased
+    // tier to StoreProductEntitlement(product: "listing"), so read that here — NOT
+    // the chatbot's Subscription.plan, which is a separate product with its own
+    // tier vocabulary (starter/scale) and would silently resolve paying Gavriel
+    // customers down to the free quota.
+    const entitlement = storeIds.length
+      ? await prisma.storeProductEntitlement.findFirst({
+          where: {
+            storeId: { in: storeIds },
+            product: "listing",
+            status: { in: ["active", "trialing"] },
+          },
+          orderBy: { updatedAt: "desc" },
+        })
+      : null;
+
+    const plan = entitlement?.tier?.toLowerCase() || "free";
+    const quotaLimit = TIER_QUOTAS[plan] ?? TIER_QUOTAS.free;
+
+    if (entitlement && TIER_QUOTAS[plan] === undefined) {
+      // A paid entitlement we don't have a quota for must not silently become "free".
+      console.error(
+        `[Gavriel Analyze] Unknown listing tier "${entitlement.tier}" on store ${entitlement.storeId} — falling back to free quota. Add it to TIER_QUOTAS.`
+      );
+    }
+
+    // Usage is counted per calendar month and resets at 00:00 on the 1st.
     const now = new Date();
     const periodStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
