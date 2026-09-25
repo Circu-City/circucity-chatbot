@@ -1,4 +1,13 @@
-import { getChannelConfigFromDb, META_GRAPH_URL, META_API_VERSION, ChannelCredentials, isConfiguredAsync } from "./types";
+import {
+  getChannelConfigFromDb,
+  META_GRAPH_URL,
+  META_API_VERSION,
+  ChannelCredentials,
+  isConfiguredAsync,
+  IG_AUTH_URL,
+  IG_TOKEN_URL,
+} from "./types";
+import { exchangeIgLongLivedToken } from "./instagram";
 
 export { isConfiguredAsync as isConfigured };
 
@@ -9,10 +18,23 @@ export async function getWebhookVerifyToken(): Promise<string> {
 
 export async function getOAuthUrl(platform: string, storeId: string): Promise<string> {
   const cfg = await getChannelConfigFromDb();
+  // Instagram uses Business Login for Instagram: a different host, a different app id,
+  // and comma-separated instagram_business_* scopes. The Page scopes this used to send
+  // were deprecated by Meta on 2025-01-27 and required a linked Facebook Page.
+  if (platform === "instagram") {
+    const params = new URLSearchParams({
+      client_id: cfg.igAppId,
+      redirect_uri: cfg.redirectUri,
+      state: JSON.stringify({ platform, storeId }),
+      scope: "instagram_business_basic,instagram_business_manage_messages",
+      response_type: "code",
+    });
+    return `${IG_AUTH_URL}?${params.toString()}`;
+  }
+
   const scopes: Record<string, string> = {
     whatsapp: "whatsapp_business_messaging business_management",
     messenger: "pages_manage_metadata pages_messaging pages_read_engagement pages_show_list",
-    instagram: "pages_manage_metadata pages_messaging pages_read_engagement pages_show_list",
   };
 
   const params = new URLSearchParams({
@@ -26,8 +48,29 @@ export async function getOAuthUrl(platform: string, storeId: string): Promise<st
   return `https://www.facebook.com/${META_API_VERSION}/dialog/oauth?${params.toString()}`;
 }
 
-export async function exchangeCodeForToken(code: string): Promise<ChannelCredentials> {
+export async function exchangeCodeForToken(code: string, platform?: string): Promise<ChannelCredentials> {
   const cfg = await getChannelConfigFromDb();
+
+  if (platform === "instagram") {
+    // Instagram Login: short-lived token from api.instagram.com, then a 60-day
+    // long-lived token from graph.instagram.com.
+    const res = await fetch(IG_TOKEN_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        client_id: cfg.igAppId,
+        client_secret: cfg.igAppSecret,
+        grant_type: "authorization_code",
+        redirect_uri: cfg.redirectUri,
+        code,
+      }),
+    });
+    if (!res.ok) throw new Error(`Instagram token exchange failed: ${await res.text()}`);
+    const short: { access_token: string; user_id?: string | number } = await res.json();
+    const long = await exchangeIgLongLivedToken(short.access_token);
+    return { accessToken: long.accessToken, tokenExpiresAt: long.tokenExpiresAt };
+  }
+
   const tokenRes = await fetch(`${META_GRAPH_URL}/oauth/access_token`, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
