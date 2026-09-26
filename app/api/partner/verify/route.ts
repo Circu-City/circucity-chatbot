@@ -4,6 +4,9 @@ import { cookies } from 'next/headers';
 import prisma from '@/lib/db';
 import { verify } from 'jsonwebtoken';
 import { hash } from 'bcryptjs';
+import { partnerAccountActivatedEmail } from '@/lib/email';
+
+const BASE_URL = process.env.NEXT_PUBLIC_URL || 'https://ai.circucity.com';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) {
@@ -30,8 +33,21 @@ export async function POST(req: NextRequest) {
     let payload: { email: string; type: string; referralCode: string };
     try {
       payload = verify(token, JWT_SECRET) as any;
-    } catch {
-      return NextResponse.json({ success: false, error: 'Invalid or expired verification link' }, { status: 400 });
+    } catch (e: any) {
+      // An expired link is recoverable -- the partner just needs a new one. A bad
+      // signature is not. Collapsing both into one message left partners staring at
+      // "Apply Again" with no way forward, which is how seven of them got stuck.
+      const expired = e?.name === 'TokenExpiredError';
+      return NextResponse.json(
+        {
+          success: false,
+          code: expired ? 'expired' : 'invalid',
+          error: expired
+            ? 'This setup link has expired. Request a new one below.'
+            : 'This setup link is not valid. Please request a new one.',
+        },
+        { status: 400 }
+      );
     }
 
     if (payload.type !== 'partner-verify') {
@@ -96,6 +112,18 @@ export async function POST(req: NextRequest) {
       maxAge: 7 * 24 * 60 * 60,
       path: '/',
     });
+
+    // Welcome / activation email (best effort)
+    try {
+      await partnerAccountActivatedEmail({
+        email: payload.email,
+        name: `${partner.firstName || ''} ${partner.lastName || ''}`.trim() || payload.email,
+        program: partner.type || '',
+        dashboardUrl: `${BASE_URL}/partner/dashboard`,
+      });
+    } catch (e) {
+      console.error('[Partner Activated Email Error]', e);
+    }
 
     return NextResponse.json({
       success: true,

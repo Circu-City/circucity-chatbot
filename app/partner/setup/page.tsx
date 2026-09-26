@@ -14,6 +14,27 @@ function SetupForm() {
   const [loading, setLoading] = useState(false);
   const [verified, setVerified] = useState(false);
   const [error, setError] = useState('');
+  const [resendEmail, setResendEmail] = useState('');
+  const [resendState, setResendState] = useState<'idle' | 'sending' | 'sent'>('idle');
+  const [resendMsg, setResendMsg] = useState('');
+
+  async function handleResend(e: React.FormEvent) {
+    e.preventDefault();
+    setResendState('sending');
+    try {
+      const res = await fetch('/api/partner/resend', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: resendEmail }),
+      });
+      const data = await res.json();
+      setResendMsg(data.message || data.error || 'Check your inbox.');
+      setResendState(data.success ? 'sent' : 'idle');
+    } catch {
+      setResendMsg('Something went wrong. Please try again.');
+      setResendState('idle');
+    }
+  }
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -112,14 +133,42 @@ function SetupForm() {
 
           {tokenValid === false ? (
             <div className="text-center">
-              <AlertCircle className="w-16 h-16 text-red-400 mx-auto mb-4" />
-              <h1 className="text-2xl font-bold text-white mb-3">Invalid Link</h1>
+              <AlertCircle className="w-16 h-16 text-amber-400 mx-auto mb-4" />
+              <h1 className="text-2xl font-bold text-white mb-3">Link Expired</h1>
               <p className="text-gray-400 mb-6">{error}</p>
-              <Link
-                href="/partners/apply"
-                className="inline-flex items-center gap-2 bg-[#A3E635] text-[#0A1428] px-6 py-3 rounded-xl font-bold text-sm hover:bg-[#8DC92E] transition-all"
-              >
-                Apply Again <ArrowRight className="w-4 h-4" />
+
+              {resendState === 'sent' ? (
+                <p className="text-[#A3E635] text-sm mb-6">{resendMsg}</p>
+              ) : (
+                <form onSubmit={handleResend} className="text-left mb-6">
+                  <label htmlFor="resend-email" className="block text-sm text-gray-300 mb-2">
+                    Your application email
+                  </label>
+                  <input
+                    id="resend-email"
+                    type="email"
+                    required
+                    value={resendEmail}
+                    onChange={(e) => setResendEmail(e.target.value)}
+                    placeholder="you@example.com"
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-[#A3E635] mb-3"
+                  />
+                  <button
+                    type="submit"
+                    disabled={resendState === 'sending'}
+                    className="w-full inline-flex items-center justify-center gap-2 bg-[#A3E635] text-[#0A1428] px-6 py-3 rounded-xl font-bold text-sm hover:bg-[#8DC92E] transition-all disabled:opacity-60"
+                  >
+                    {resendState === 'sending' ? 'Sending…' : 'Send me a new link'}
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                  {resendMsg && resendState !== 'sent' && (
+                    <p className="text-sm text-gray-400 mt-3">{resendMsg}</p>
+                  )}
+                </form>
+              )}
+
+              <Link href="/partners/apply" className="text-sm text-gray-400 hover:text-white underline">
+                Haven't applied yet? Apply here
               </Link>
             </div>
           ) : (
