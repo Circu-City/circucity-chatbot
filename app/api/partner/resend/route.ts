@@ -80,15 +80,19 @@ export async function POST(req: NextRequest) {
       data: { verificationToken: token },
     });
 
+    // Partner.email is nullable in the schema. We matched on it, so it is present --
+    // but fall back to the submitted address rather than passing null downstream.
+    const partnerEmail = partner.email ?? email;
+
     const setupUrl = `${BASE}/partner/setup?token=${token}`;
-    const { consentUrlYes, consentUrlNo } = buildConsentUrls(partner.email);
+    const { consentUrlYes, consentUrlNo } = buildConsentUrls(partnerEmail);
     const name = `${partner.firstName ?? ''} ${partner.lastName ?? ''}`.trim() || 'there';
 
     // partnerApprovedEmail builds the message AND sends it, returning the send result.
     // Treating it as a template that returns {subject,text,html} sends the mail once and
     // then throws on the second call, logging a failure for a message that did go out.
     const sent = await partnerApprovedEmail({
-      email: partner.email,
+      email: partnerEmail,
       name,
       program: partner.type || 'partner',
       setupUrl,

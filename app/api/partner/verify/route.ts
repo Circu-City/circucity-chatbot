@@ -24,8 +24,13 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const parsed = verifySchema.safeParse(body);
     if (!parsed.success) {
-      const firstError = parsed.error.errors[0];
+      const firstError = parsed.error.issues[0];
       return NextResponse.json({ success: false, error: firstError.message }, { status: 400 });
+    }
+
+    if (!JWT_SECRET) {
+      console.error('[partner/verify] JWT_SECRET is not set');
+      return NextResponse.json({ success: false, error: 'Server configuration error' }, { status: 500 });
     }
 
     const { token, password } = parsed.data;

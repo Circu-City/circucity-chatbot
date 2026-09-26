@@ -5,11 +5,13 @@ import crypto from 'crypto';
 import { sign } from 'jsonwebtoken';
 import { sendEmail, partnerApprovedEmail, buildConsentUrls } from '@/lib/email';
 
+// process.env.JWT_SECRET is string | undefined, and sign() throws on undefined -- an
+// unset secret produced an unhandled 500 rather than anything diagnosable.
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) {
   throw new Error('JWT_SECRET environment variable is required');
 }
-const BASE_URL = process.env.NEXT_PUBLIC_URL || 'https://chatbot.circucity.com';
+const BASE_URL = process.env.NEXT_PUBLIC_URL || 'https://ai.circucity.com';
 const PARTNERS_PORTAL_URL = process.env.PARTNERS_PORTAL_URL || 'https://partners.circucity.com';
 const PARTNERS_SYNC_SECRET = process.env.PARTNERS_SYNC_SECRET || '';
 
@@ -66,22 +68,36 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const parsed = applySchema.safeParse(body);
     if (!parsed.success) {
-      const firstError = parsed.error?.errors?.[0];
+      const firstError = parsed.error?.issues?.[0];
       return NextResponse.json({ success: false, error: firstError?.message || "Invalid input" }, { status: 400 });
+    }
+
+    if (!JWT_SECRET) {
+      console.error('[partner/apply] JWT_SECRET is not set');
+      return NextResponse.json({ success: false, error: 'Server configuration error' }, { status: 500 });
     }
 
     const { program, firstName, lastName, email, phone, company, website, country, experience, audience, message } = parsed.data;
     const normalizedEmail = email.toLowerCase().trim();
     const fullName = `${firstName} ${lastName}`.trim();
 
-    const existingByEmail = await prisma.partner.findFirst({
-      where: { email: normalizedEmail, status: { in: ['approved', 'active'] } },
+    // Any prior application for this address, whatever its status. Rows created before
+    // email normalisation landed can carry mixed case, so match insensitively.
+    const existingPartner = await prisma.partner.findFirst({
+      where: { email: { equals: normalizedEmail, mode: 'insensitive' } },
+      orderBy: { createdAt: 'desc' },
     });
-    if (existingByEmail) {
+
+    if (existingPartner && ['approved', 'active'].includes(existingPartner.status)) {
       return NextResponse.json({ success: false, error: 'A partner account with this email is already active' }, { status: 409 });
     }
 
-    const referralCode = `${firstName.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 3) || 'pt'}-${Date.now().toString(36)}`;
+    // The referral code is the partner's actual referral link. If they already have one
+    // it may be in circulation, so re-applying must not mint a new one and silently
+    // orphan the old link's attribution.
+    const referralCode =
+      existingPartner?.referralCode ||
+      `${firstName.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 3) || 'pt'}-${Date.now().toString(36)}`;
     const verificationToken = sign(
       { email: normalizedEmail, type: 'partner-verify', referralCode },
       JWT_SECRET,
@@ -93,10 +109,11 @@ export async function POST(req: NextRequest) {
       select: { id: true, userId: true },
     });
 
-    // Create or update partner in Prisma DB
-    const partnerApplication = await prisma.partner.upsert({
-      where: { referralCode },
-      update: {
+    // upsert keyed on `referralCode` could never match: the code was generated fresh on
+    // every request, so the update branch was dead and each re-application inserted a
+    // duplicate Partner row, orphaning the previous one. Resolve the row by identity and
+    // branch explicitly.
+    const partnerData = {
         type: program,
         status: 'approved',
         paymentEmail: normalizedEmail,
@@ -108,23 +125,18 @@ export async function POST(req: NextRequest) {
         phone: phone || null,
         country,
         verificationToken,
-      },
-      create: {
-        storeId: existingStore?.id || null,
-        type: program,
-        status: 'approved',
-        referralCode,
-        paymentEmail: normalizedEmail,
-        website: website || null,
-        bio: experience || null,
-        email: normalizedEmail,
-        firstName,
-        lastName,
-        phone: phone || null,
-        country,
-        verificationToken,
-      },
-    });
+    };
+
+    const partnerApplication = existingPartner
+      ? await prisma.partner.update({
+          where: { id: existingPartner.id },
+          // storeId is only set on create: an existing partner may already be linked to a
+          // store, and re-applying should not silently relink them to a different one.
+          data: partnerData,
+        })
+      : await prisma.partner.create({
+          data: { ...partnerData, storeId: existingStore?.id || null, referralCode },
+        });
 
     // Generate secure setup URL on the Partner Portal (partners.circucity.com)
     let setupUrl = `${PARTNERS_PORTAL_URL}/setup?token=${verificationToken}`;
