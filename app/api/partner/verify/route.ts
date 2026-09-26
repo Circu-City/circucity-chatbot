@@ -55,14 +55,24 @@ export async function POST(req: NextRequest) {
     }
 
     const partner = await prisma.partner.findFirst({
-      where: { email: payload.email, verificationToken: token, status: 'approved' },
+      // Rows created before email normalisation landed (0ee6b586, 2026-09-10) can carry
+      // mixed case, while the token always carries the lowercased address. An exact match
+      // silently fails for those partners, so their link never works.
+      where: {
+        email: { equals: payload.email, mode: 'insensitive' },
+        verificationToken: token,
+        status: 'approved',
+      },
     });
 
     if (!partner) {
       return NextResponse.json({ success: false, error: 'Your application has not been approved yet or the link is invalid.' }, { status: 404 });
     }
 
-    const existingUser = await prisma.user.findUnique({ where: { email: payload.email } });
+    const normalizedEmail = payload.email.toLowerCase().trim();
+    const existingUser = await prisma.user.findFirst({
+      where: { email: { equals: normalizedEmail, mode: 'insensitive' } },
+    });
     const passwordHash = await hash(password, SALT_ROUNDS);
     let userId: string;
 
@@ -76,7 +86,7 @@ export async function POST(req: NextRequest) {
     } else {
       const user = await prisma.user.create({
         data: {
-          email: payload.email,
+          email: normalizedEmail,
           name: `${partner.firstName} ${partner.lastName}`,
           passwordHash,
           emailVerified: new Date(),
