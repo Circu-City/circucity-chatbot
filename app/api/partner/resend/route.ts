@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sign } from 'jsonwebtoken';
 import prisma from '@/lib/db';
-import { sendEmail, partnerApprovedEmail, buildConsentUrls } from '@/lib/email';
+import { partnerApprovedEmail, buildConsentUrls } from '@/lib/email';
 
 export const dynamic = 'force-dynamic';
 
@@ -59,8 +59,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Not every row was stored normalised -- at least one has a capital first letter --
+    // so an exact match on the lowercased input silently finds nothing.
     const partner = await prisma.partner.findFirst({
-      where: { email, status: { in: ['approved', 'pending'] }, emailVerified: false },
+      where: {
+        email: { equals: email, mode: 'insensitive' },
+        status: { in: ['approved', 'pending'] },
+        emailVerified: false,
+      },
     });
 
     // Already-active partners sign in normally; saying so here would leak membership.
@@ -75,23 +81,19 @@ export async function POST(req: NextRequest) {
     });
 
     const setupUrl = `${BASE}/partner/setup?token=${token}`;
-    const { consentUrlYes, consentUrlNo } = buildConsentUrls(email);
+    const { consentUrlYes, consentUrlNo } = buildConsentUrls(partner.email);
     const name = `${partner.firstName ?? ''} ${partner.lastName ?? ''}`.trim() || 'there';
 
-    const mail = partnerApprovedEmail({
-      email,
+    // partnerApprovedEmail builds the message AND sends it, returning the send result.
+    // Treating it as a template that returns {subject,text,html} sends the mail once and
+    // then throws on the second call, logging a failure for a message that did go out.
+    const sent = await partnerApprovedEmail({
+      email: partner.email,
       name,
       program: partner.type || 'partner',
       setupUrl,
       consentUrlYes,
       consentUrlNo,
-    });
-
-    const sent = await sendEmail({
-      to: email,
-      subject: mail.subject,
-      text: mail.text,
-      html: mail.html,
     });
 
     if (!sent) console.error(`[partner/resend] send failed for partner ${partner.id}`);
