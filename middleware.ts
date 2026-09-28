@@ -62,13 +62,63 @@ function isRateLimited(ip: string, path: string): boolean {
 
 const ALLOWED_ORIGINS = new Set([
   "https://gavriel.circucity.com",
-  "https://chatbot.circucity.com",
+  "https://ai.circucity.com",
   "https://circucity.com",
   "https://www.circucity.com",
   "https://partners.circucity.com",
   "http://localhost:3000",
   "http://localhost:3003",
 ]);
+
+// Security headers were applied to the response created at the end of the
+// middleware, so every early return skipped them. The gavriel.circucity.com
+// landing page rewrites and returns above that point, which left it as the one
+// page on the host with no HSTS, no CSP and no frame-ancestors -- framable by
+// any site. Applying them through one helper means a new early return cannot
+// silently drop them again.
+function withSecurityHeaders(response: NextResponse, request: NextRequest): NextResponse {
+
+  // Standard Security Headers
+  response.headers.set("X-Content-Type-Options", "nosniff");
+  response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  response.headers.set("X-XSS-Protection", "1; mode=block");
+  response.headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+  response.headers.set("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload");
+
+  // Content-Security-Policy
+  const csp = [
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.circucity.com https://*.circucity.ai https://cdn.jsdelivr.net https://cdn.simpleicons.org https://js.stripe.com https://accounts.google.com https://*.clerk.com https://clerk.circucity.com https://cdn.shopify.com https://*.shopify.com https://*.myshopify.com",
+    "connect-src 'self' https://*.circucity.com https://*.circucity.ai https://api.github.com wss://*.circucity.com ws://127.0.0.1:8000 https://api.cognitive.microsofttranslator.com https://edge.microsoft.com https://api.translate.zvo.cn https://*.shopify.com https://*.myshopify.com https://admin.shopify.com",
+    "img-src 'self' data: blob: https://*.circucity.com https://*.circucity.ai https://img.clerk.com https://cdn.jsdelivr.net https://images.unsplash.com https://cdn.simpleicons.org https://utfs.io https://cdn.shopify.com",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net",
+    "font-src 'self' https://fonts.gstatic.com",
+    "frame-src 'self' https://js.stripe.com https://accounts.google.com https://*.clerk.com https://*.shopify.com https://*.myshopify.com https://admin.shopify.com",
+    "frame-ancestors 'self' https://*.myshopify.com https://admin.shopify.com https://*.shopify.com https://*.circucity.com https://*.circucity.se https://*.woocommerce.com https://*.ebay.com https://*.etsy.com",
+    "base-uri 'self'",
+    "form-action 'self'",
+  ].join("; ");
+
+  response.headers.set("Content-Security-Policy", csp);
+
+  // Restricted CORS
+  const origin = request.headers.get("origin");
+  if (origin && ALLOWED_ORIGINS.has(origin)) {
+    response.headers.set("Access-Control-Allow-Origin", origin);
+    response.headers.set("Access-Control-Allow-Credentials", "true");
+  } else if (!origin) {
+    // Same-origin / direct browser navigation
+    response.headers.set("Access-Control-Allow-Origin", "https://gavriel.circucity.com");
+  }
+  response.headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  response.headers.set(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Authorization, X-Request-Id, X-Shopify-Hmac-Sha256, X-Shopify-Topic, X-Shopify-Shop-Domain"
+  );
+  response.headers.set("Access-Control-Max-Age", "86400");
+
+  return response;
+}
 
 export async function middleware(request: NextRequest) {
   const host = request.headers.get("host") || "";
@@ -77,11 +127,11 @@ export async function middleware(request: NextRequest) {
   // Standalone domain routing for Gavriel OS
   if (host.includes("gavriel.circucity.com")) {
     if (pathname === "/" || pathname === "") {
-      return NextResponse.rewrite(new URL("/gavriel", request.url));
+      return withSecurityHeaders(NextResponse.rewrite(new URL("/gavriel", request.url)), request);
     }
   } else if (pathname === "/gavriel" || pathname.startsWith("/gavriel/")) {
-    // Explicitly redirect /gavriel on chatbot.circucity.com to standalone subdomain
-    return NextResponse.redirect(new URL("https://gavriel.circucity.com/", request.url), 301);
+    // Explicitly redirect /gavriel on ai.circucity.com to standalone subdomain
+    return withSecurityHeaders(NextResponse.redirect(new URL("https://gavriel.circucity.com/", request.url), 301), request);
   }
 
   // Rate limiting for auth and API endpoints (20 req/min per IP)
@@ -136,45 +186,5 @@ export async function middleware(request: NextRequest) {
   }
 
   const response = NextResponse.next();
-
-  // Standard Security Headers
-  response.headers.set("X-Content-Type-Options", "nosniff");
-  response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
-  response.headers.set("X-XSS-Protection", "1; mode=block");
-  response.headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
-  response.headers.set("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload");
-
-  // Content-Security-Policy
-  const csp = [
-    "default-src 'self'",
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.circucity.com https://*.circucity.ai https://cdn.jsdelivr.net https://cdn.simpleicons.org https://js.stripe.com https://accounts.google.com https://*.clerk.com https://clerk.circucity.com https://cdn.shopify.com https://*.shopify.com https://*.myshopify.com",
-    "connect-src 'self' https://*.circucity.com https://*.circucity.ai https://api.github.com wss://*.circucity.com ws://127.0.0.1:8000 https://api.cognitive.microsofttranslator.com https://edge.microsoft.com https://api.translate.zvo.cn https://*.shopify.com https://*.myshopify.com https://admin.shopify.com",
-    "img-src 'self' data: blob: https://*.circucity.com https://*.circucity.ai https://img.clerk.com https://cdn.jsdelivr.net https://images.unsplash.com https://cdn.simpleicons.org https://utfs.io https://cdn.shopify.com",
-    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net",
-    "font-src 'self' https://fonts.gstatic.com",
-    "frame-src 'self' https://js.stripe.com https://accounts.google.com https://*.clerk.com https://*.shopify.com https://*.myshopify.com https://admin.shopify.com",
-    "frame-ancestors 'self' https://*.myshopify.com https://admin.shopify.com https://*.shopify.com https://*.circucity.com https://*.circucity.se https://*.woocommerce.com https://*.ebay.com https://*.etsy.com",
-    "base-uri 'self'",
-    "form-action 'self'",
-  ].join("; ");
-
-  response.headers.set("Content-Security-Policy", csp);
-
-  // Restricted CORS
-  const origin = request.headers.get("origin");
-  if (origin && ALLOWED_ORIGINS.has(origin)) {
-    response.headers.set("Access-Control-Allow-Origin", origin);
-    response.headers.set("Access-Control-Allow-Credentials", "true");
-  } else if (!origin) {
-    // Same-origin / direct browser navigation
-    response.headers.set("Access-Control-Allow-Origin", "https://gavriel.circucity.com");
-  }
-  response.headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-  response.headers.set(
-    "Access-Control-Allow-Headers",
-    "Content-Type, Authorization, X-Request-Id, X-Shopify-Hmac-Sha256, X-Shopify-Topic, X-Shopify-Shop-Domain"
-  );
-  response.headers.set("Access-Control-Max-Age", "86400");
-
-  return response;
+  return withSecurityHeaders(NextResponse.next(), request);
 }
