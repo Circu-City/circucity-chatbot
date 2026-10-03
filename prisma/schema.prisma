@@ -757,3 +757,21 @@ model PartnerMessage {
   @@index([partnerId])
   @@index([createdAt])
 }
+/// Aggregated widget origin decisions. One row per (store, host, outcome) with a
+/// counter, so the table is bounded by distinct origins rather than by traffic.
+/// Exists because pm2's log retention turned out to be minutes, which left monitor
+/// mode with no evidence to show for five days of running.
+model WidgetOriginEvent {
+  id        String   @id @default(cuid())
+  storeId   String
+  host      String   @default("")
+  /// allowed | would_reject | unconfigured
+  outcome   String
+  hits      Int      @default(1)
+  firstSeen DateTime @default(now())
+  lastSeen  DateTime @default(now())
+
+  @@unique([storeId, host, outcome])
+  @@index([outcome, lastSeen])
+  @@index([storeId])
+}

@@ -3,7 +3,7 @@ import prisma from "@/lib/db";
 import fs from "fs";
 import path from "path";
 import { crawlWebsite } from "@/lib/crawler";
-import { hexToRgb } from "@/lib/widget-api";
+import { hexToRgb, checkWidgetOrigin, recordOriginDecision } from "@/lib/widget-api";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -40,6 +40,23 @@ export async function GET(request: NextRequest) {
         include: { embedSettings: true },
       });
       if (store) {
+        // Script delivery is lenient about an unidentifiable host (see
+        // checkWidgetOrigin) — the shell carries no tenant data. The data
+        // routes it calls afterwards enforce strictly.
+        const decision = checkWidgetOrigin(
+          store,
+          request.headers.get("origin"),
+          request.headers.get("referer"),
+          { allowUnknownHost: true },
+        );
+        recordOriginDecision(prisma, store.id, decision);
+        if (!decision.allowed) {
+          return new NextResponse(
+            "console.error('[Cira] This domain is not authorized for this widget key.');",
+            { status: 403, headers: { ...corsHeaders, "Content-Type": "application/javascript" } },
+          );
+        }
+
         workspaceName = store.businessName || store.name || "Cira";
         workspaceId = store.id;
         botName = store.embedSettings?.botName || "Cira";

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/db";
 import { crawlWebsite } from "@/lib/crawler";
+import { checkWidgetOrigin, originForbiddenResponseBody, recordOriginDecision } from "@/lib/widget-api";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -28,6 +29,21 @@ export async function GET(request: NextRequest) {
       where: { apiKey: tenantId, status: "active" },
       include: { embedSettings: true },
     });
+
+    if (store) {
+      const decision = checkWidgetOrigin(
+        store,
+        request.headers.get("origin"),
+        request.headers.get("referer"),
+      );
+      recordOriginDecision(prisma, store.id, decision);
+      if (!decision.allowed) {
+        return NextResponse.json(originForbiddenResponseBody(decision.host), {
+          status: 403,
+          headers: corsHeaders,
+        });
+      }
+    }
 
     // Auto-verify website ownership if widget is loaded from the store's domain
     if (store && !store.ownershipVerified && store.websiteUrl) {

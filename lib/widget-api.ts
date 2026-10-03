@@ -78,8 +78,16 @@ export function hostMatchesPattern(host: string, pattern: string): boolean {
 }
 
 export type OriginDecision = {
+  /** What the caller should do. In monitor mode this is true even for a mismatch. */
   allowed: boolean;
+  /** The store has domain patterns at all. */
   configured: boolean;
+  /**
+   * Whether the host actually satisfied those patterns. Distinct from `allowed`:
+   * under monitor a mismatch is still served, so the verdict has to be recorded
+   * independently of the action or the log can't tell the two apart.
+   */
+  matched: boolean;
   host: string | null;
 };
 
@@ -97,26 +105,26 @@ export function checkWidgetOrigin(
   const patterns = parseAllowedDomains(store.allowedDomains);
 
   if (host && PLATFORM_HOSTS.has(host)) {
-    return { allowed: true, configured: patterns.length > 0, host };
+    return { allowed: true, configured: patterns.length > 0, matched: true, host };
   }
 
   if (patterns.length === 0) {
     console.warn(
       "[WidgetAuth] UNCONFIGURED store=" + store.id + " served to host=" + (host || "unknown"),
     );
-    return { allowed: true, configured: false, host };
+    return { allowed: true, configured: false, matched: false, host };
   }
 
   if (!host) {
     if (opts?.allowUnknownHost) {
-      return { allowed: true, configured: true, host: null };
+      return { allowed: true, configured: true, matched: true, host: null };
     }
     const monitoringNoHost = widgetEnforceMode() === "monitor";
     console.warn(
       "[WidgetAuth] " + (monitoringNoHost ? "WOULD REJECT" : "REJECTED") +
         " store=" + store.id + ": no Origin or Referer header",
     );
-    return { allowed: monitoringNoHost, configured: true, host: null };
+    return { allowed: monitoringNoHost, configured: true, matched: false, host: null };
   }
 
   const matches = patterns.some((p) => hostMatchesPattern(host, p));
@@ -126,9 +134,9 @@ export function checkWidgetOrigin(
       "[WidgetAuth] " + (monitoring ? "WOULD REJECT" : "REJECTED") +
         " store=" + store.id + " host=" + host + " (allowed: " + patterns.join(", ") + ")",
     );
-    return { allowed: monitoring, configured: true, host };
+    return { allowed: monitoring, configured: true, matched: false, host };
   }
-  return { allowed: true, configured: true, host };
+  return { allowed: true, configured: true, matched: true, host };
 }
 
 export function originForbiddenResponseBody(host: string | null) {
@@ -274,4 +282,37 @@ export function hexToRgb(hex: string): string {
   const n = parseInt(full, 16);
   if (Number.isNaN(n)) return "163,230,53";
   return `${(n >> 16) & 255},${(n >> 8) & 255},${n & 255}`;
+}
+
+
+// pm2's log window turned out to be minutes, not days, so monitor-mode findings were
+// gone before anyone could read them. Decisions are aggregated into one row per
+// (store, host, outcome) and counted, rather than appended per request -- the table
+// stays bounded by the number of distinct origins, not by traffic.
+export type OriginOutcome = "allowed" | "would_reject" | "unconfigured";
+
+export function outcomeOf(decision: OriginDecision): OriginOutcome {
+  if (!decision.configured) return "unconfigured";
+  return decision.matched ? "allowed" : "would_reject";
+}
+
+/**
+ * Fire-and-forget. Never await this and never let it reject: a logging failure must
+ * not turn into a failed chat message.
+ */
+export function recordOriginDecision(
+  prisma: { $executeRaw: (q: TemplateStringsArray, ...v: unknown[]) => Promise<number> },
+  storeId: string,
+  decision: OriginDecision,
+): void {
+  const outcome = outcomeOf(decision);
+  const host = decision.host ?? "";
+  void prisma.$executeRaw`
+    INSERT INTO chatbot."WidgetOriginEvent" (id, "storeId", host, outcome, hits, "firstSeen", "lastSeen")
+    VALUES (gen_random_uuid()::text, ${storeId}, ${host}, ${outcome}, 1, NOW(), NOW())
+    ON CONFLICT ("storeId", host, outcome)
+    DO UPDATE SET hits = chatbot."WidgetOriginEvent".hits + 1, "lastSeen" = NOW()
+  `.catch((e: unknown) => {
+    console.error("[WidgetAuth] could not record origin decision:", (e as Error)?.message);
+  });
 }

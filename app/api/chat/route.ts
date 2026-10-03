@@ -46,6 +46,7 @@ import {
   isDuplicateRequest,
   originForbiddenResponseBody,
   trackWidgetEvent,
+  recordOriginDecision,
 } from "@/lib/widget-api";
 
 const openai = process.env.OPENAI_API_KEY 
@@ -339,6 +340,7 @@ export async function POST(request: NextRequest) {
       request.headers.get("origin"),
       request.headers.get("referer"),
     );
+      recordOriginDecision(prisma, store.id, originDecision);
     if (!originDecision.allowed) {
       return NextResponse.json(
         originForbiddenResponseBody(originDecision.host),

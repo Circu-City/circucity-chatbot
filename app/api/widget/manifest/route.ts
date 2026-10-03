@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/db";
 import crypto from "crypto";
-import { checkWidgetOrigin, originForbiddenResponseBody } from "@/lib/widget-api";
+import { checkWidgetOrigin, originForbiddenResponseBody, recordOriginDecision } from "@/lib/widget-api";
 
 function getCorsHeaders(requestOrigin: string | null): Record<string, string> {
   const origin = requestOrigin || "https://chatbot.circucity.com";
@@ -53,6 +53,7 @@ export async function GET(request: NextRequest) {
 
     // Domain Authorization check
     const originDecision = checkWidgetOrigin(store, originHeader, refererHeader);
+    recordOriginDecision(prisma, store.id, originDecision);
     if (!originDecision.allowed) {
       return NextResponse.json(originForbiddenResponseBody(originDecision.host), {
         status: 403,
