@@ -14,3 +14,13 @@ logs/
 public/demo.mp4
 public/videos/
 .DS_Store
+.foglamp/
+
+# Build snapshots kept by hand on the server (~2.7GB, never belong in git)
+.next-*/
+# On-box dump directory
+backups/
+# Loose patch files from manual deploys
+*.patch
+# User-uploaded files: these are runtime data and contain personal information
+data/uploads/
