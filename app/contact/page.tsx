@@ -1,5 +1,12 @@
+import type { Metadata } from "next";
 import MarketingShell from '@/components/marketing/MarketingShell';
 import { Mail, MapPin, Phone, Headphones, Shield, MessageSquare } from 'lucide-react';
+
+export const metadata: Metadata = {
+  title: "Contact | CircuCity AI",
+  description: "Talk to the CircuCity team about Cira, Gavriel, partnerships or support.",
+  alternates: { canonical: "/contact" },
+};
 
 export default function ContactPage() {
   return (

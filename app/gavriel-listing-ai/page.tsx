@@ -1,8 +1,15 @@
+import type { Metadata } from "next";
 import MarketingShell from '@/components/marketing/MarketingShell';
 import {
   Bot, Camera, Cable, Check, Globe2, LayoutDashboard, Rocket, ShoppingBag, Sparkles, ArrowRight,
 } from 'lucide-react';
 import Link from 'next/link';
+
+export const metadata: Metadata = {
+  title: "Gavriel — Visual Listing AI | CircuCity AI",
+  description: "Photograph a product and Gavriel writes the listing: catalogue inspection, condition notes and pricing, straight from the image.",
+  alternates: { canonical: "/gavriel-listing-ai" },
+};
 
 const PILLARS = [
   {
