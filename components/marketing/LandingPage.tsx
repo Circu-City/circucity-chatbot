@@ -7,7 +7,7 @@ import {
   ArrowRight, CheckCircle2, Zap, ShieldCheck, BarChart3, Globe,
   ShoppingBag, Bot, MessageSquare, Play, Sparkles, ChevronDown, HeadphonesIcon,
   Star, Quote, TrendingUp, Clock, Users, RefreshCw, Search, ShoppingCart,
-  DollarSign, ThumbsUp, Layers, Smartphone, Mail, Camera, Cable
+  DollarSign, ThumbsUp, Layers, Smartphone, Mail, Camera, Cable, Loader2, X
 } from 'lucide-react';
 import Header from '@/components/marketing/Header';
 import Footer from '@/components/marketing/Footer';
@@ -199,14 +199,11 @@ interface SlideCardProps {
 }
 
 function SlideCard({ children, className = '', delay = 0 }: SlideCardProps) {
-  const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true, margin: '-60px' });
   return (
     <motion.div
-      ref={ref}
-      initial={{ opacity: 0, y: 40 }}
-      animate={isInView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.6, delay, ease: [0.25, 0.46, 0.45, 0.94] }}
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, delay, ease: 'easeOut' }}
       className={className}
     >
       {children}
@@ -232,6 +229,43 @@ export default function LandingPage() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [videoPlaying, setVideoPlaying] = useState(false);
 
+  const [gavrielEmail, setGavrielEmail] = useState('');
+  const [gavrielLoading, setGavrielLoading] = useState(false);
+  const [gavrielModalOpen, setGavrielModalOpen] = useState(false);
+  const [gavrielError, setGavrielError] = useState('');
+
+  const handleTryGavriel = async (emailToUse: string) => {
+    const email = (emailToUse || '').trim().toLowerCase();
+    if (!email || !email.includes('@') || !email.includes('.')) {
+      setGavrielError('Please enter a valid email address');
+      return;
+    }
+    setGavrielLoading(true);
+    setGavrielError('');
+    try {
+      const res = await fetch('/api/demo/leads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, source: 'frontpage_gavriel' }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setGavrielError(data.error || 'Failed to register. Please try again.');
+        setGavrielLoading(false);
+        return;
+      }
+      try {
+        localStorage.setItem('gavriel_demo_email', email);
+      } catch {
+        /* localStorage unavailable */
+      }
+      window.location.href = `/demo/listing?email=${encodeURIComponent(email)}`;
+    } catch {
+      setGavrielError('Connection error. Please try again.');
+      setGavrielLoading(false);
+    }
+  };
+
   const handlePlayVideo = () => {
     if (videoRef.current) {
       videoRef.current.play();
@@ -253,7 +287,7 @@ export default function LandingPage() {
         <div className="relative z-10 max-w-7xl mx-auto px-6 py-24 md:py-32">
           <div className="grid md:grid-cols-2 gap-16 items-center">
             <motion.div
-              initial={{ opacity: 0, y: 30 }}
+              initial={false}
               animate={heroInView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] }}
             >
@@ -299,7 +333,7 @@ export default function LandingPage() {
             </motion.div>
 
             <motion.div
-              initial={{ opacity: 0, x: 40 }}
+              initial={false}
               animate={heroInView ? { opacity: 1, x: 0 } : {}}
               transition={{ duration: 0.7, delay: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
               className="relative"
@@ -464,15 +498,58 @@ export default function LandingPage() {
               </div>
             </SlideCard>
           </div>
-          <div className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button onClick={() => window.location.href = '/dashboard/listing'} className="bg-[#A3E635] hover:bg-[#8DC92E] text-[#0A1428] font-semibold rounded-xl h-12 px-8 shadow-xl shadow-[#A3E635]/25 transition-all group">
+          {/* ─── GAVRIEL EMAIL CAPTURE ─── */}
+          <div className="mt-14 max-w-xl mx-auto">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleTryGavriel(gavrielEmail);
+              }}
+              className="flex flex-col sm:flex-row gap-3"
+            >
+              <div className="relative flex-1">
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="email"
+                  value={gavrielEmail}
+                  onChange={(e) => setGavrielEmail(e.target.value)}
+                  placeholder="Enter your business email to try Gavriel..."
+                  required
+                  className="w-full h-12 pl-11 pr-4 rounded-xl bg-white/10 border border-white/20 text-white placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-[#A3E635] focus:border-transparent transition-all"
+                />
+              </div>
+              <Button
+                type="submit"
+                disabled={gavrielLoading}
+                className="bg-[#A3E635] hover:bg-[#8DC92E] text-[#0A1428] font-bold rounded-xl h-12 px-7 shadow-xl shadow-[#A3E635]/25 transition-all flex items-center justify-center gap-2 whitespace-nowrap"
+              >
+                {gavrielLoading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <>
+                    Try Gavriel Free
+                    <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
+              </Button>
+            </form>
+            {gavrielError && (
+              <p className="text-red-400 text-xs text-center mt-2.5">{gavrielError}</p>
+            )}
+            <p className="text-[12px] text-gray-400 text-center mt-2.5">
+              Includes 10 free AI listing drafts · Instant access · No credit card required
+            </p>
+          </div>
+
+          <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Button onClick={() => window.location.href = '/dashboard/listing'} className="bg-white/10 hover:bg-white/20 text-white font-semibold rounded-xl h-11 px-6 border border-white/15 transition-all group">
               Open the Listings app
               <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Button>
-            <Button variant="outline" onClick={() => window.location.href = '/demo/listing'} className="border-white/20 text-white hover:bg-white/10 rounded-xl h-12 px-8">
-              Try the free test desk — no account
+            <Button variant="outline" onClick={() => setGavrielModalOpen(true)} className="border-white/20 text-white hover:bg-white/10 rounded-xl h-11 px-6">
+              Try the free test desk
             </Button>
-            <Button variant="outline" onClick={() => window.location.href = '/gavriel-listing-ai'} className="border-white/20 text-white hover:bg-white/10 rounded-xl h-12 px-8">
+            <Button variant="outline" onClick={() => window.location.href = '/gavriel-listing-ai'} className="border-white/20 text-white hover:bg-white/10 rounded-xl h-11 px-6">
               See pricing
             </Button>
           </div>
@@ -1075,6 +1152,88 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+      {/* ───── GAVRIEL EMAIL CAPTURE MODAL ───── */}
+      <AnimatePresence>
+        {gavrielModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              className="relative w-full max-w-md rounded-2xl bg-[#0D1A35] border border-white/15 p-6 sm:p-8 text-white shadow-2xl"
+            >
+              <button
+                type="button"
+                onClick={() => setGavrielModalOpen(false)}
+                className="absolute top-4 right-4 text-gray-400 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <div className="w-12 h-12 rounded-xl bg-[#A3E635]/15 flex items-center justify-center mb-4">
+                <Camera className="w-6 h-6 text-[#A3E635]" />
+              </div>
+
+              <h3 className="text-xl font-bold text-white mb-2">
+                Try Gavriel Listing AI Free
+              </h3>
+              <p className="text-sm text-gray-300 mb-6 leading-relaxed">
+                Enter your business email address to unlock the live listing test desk with 10 free AI drafts included.
+              </p>
+
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleTryGavriel(gavrielEmail);
+                }}
+                className="space-y-4"
+              >
+                <div>
+                  <label className="block text-xs font-semibold text-gray-300 uppercase tracking-wider mb-2">
+                    Business Email
+                  </label>
+                  <div className="relative">
+                    <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <input
+                      type="email"
+                      value={gavrielEmail}
+                      onChange={(e) => setGavrielEmail(e.target.value)}
+                      placeholder="you@yourstore.com"
+                      required
+                      autoFocus
+                      className="w-full h-11 pl-10 pr-4 rounded-xl bg-white/10 border border-white/20 text-white placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-[#A3E635] focus:border-transparent transition-all"
+                    />
+                  </div>
+                </div>
+
+                {gavrielError && (
+                  <p className="text-red-400 text-xs">{gavrielError}</p>
+                )}
+
+                <Button
+                  type="submit"
+                  disabled={gavrielLoading}
+                  className="w-full bg-[#A3E635] hover:bg-[#8DC92E] text-[#0A1428] font-bold rounded-xl h-11 text-sm shadow-lg shadow-[#A3E635]/20 transition-all flex items-center justify-center gap-2"
+                >
+                  {gavrielLoading ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <>
+                      Unlock Test Desk
+                      <ArrowRight className="w-4 h-4" />
+                    </>
+                  )}
+                </Button>
+
+                <p className="text-[11px] text-gray-400 text-center">
+                  Includes 10 free drafts. We'll send your test desk credentials and product updates. Unsubscribe anytime.
+                </p>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       <Footer />
     </div>
