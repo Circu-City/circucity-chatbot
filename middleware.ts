@@ -89,7 +89,7 @@ function withSecurityHeaders(response: NextResponse, request: NextRequest): Next
   const csp = [
     "default-src 'self'",
     "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.circucity.com https://*.circucity.ai https://cdn.jsdelivr.net https://cdn.simpleicons.org https://js.stripe.com https://accounts.google.com https://*.clerk.com https://clerk.circucity.com https://cdn.shopify.com https://*.shopify.com https://*.myshopify.com",
-    "connect-src 'self' https://*.circucity.com https://*.circucity.ai https://api.github.com wss://*.circucity.com ws://127.0.0.1:8000 https://api.cognitive.microsofttranslator.com https://edge.microsoft.com https://api.translate.zvo.cn https://*.shopify.com https://*.myshopify.com https://admin.shopify.com",
+    "connect-src 'self' https://*.circucity.com https://*.circucity.ai https://api.github.com wss://*.circucity.com ws://127.0.0.1:8000 https://api.cognitive.microsofttranslator.com https://edge.microsoft.com https://api.translate.zvo.cn https://*.translate.zvo.cn https://*.shopify.com https://*.myshopify.com https://admin.shopify.com",
     "img-src 'self' data: blob: https://*.circucity.com https://*.circucity.ai https://img.clerk.com https://cdn.jsdelivr.net https://images.unsplash.com https://cdn.simpleicons.org https://utfs.io https://cdn.shopify.com",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net",
     "font-src 'self' https://fonts.gstatic.com",
@@ -187,4 +187,4 @@ export async function middleware(request: NextRequest) {
 
   const response = NextResponse.next();
   return withSecurityHeaders(NextResponse.next(), request);
-}
+}
