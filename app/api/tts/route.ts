@@ -5,7 +5,19 @@ import path from "path";
 
 const execFileAsync = promisify(execFile);
 
+// Resident Kokoro service (scripts/kokoro_server.py, pm2: cira-tts). Keeps the
+// 311MB ONNX graph in memory; the spawn path below reloaded it on every request,
+// which cost ~1.4s of dead air before a syllable was produced.
+const KOKORO_SERVICE = process.env.KOKORO_SERVICE_URL || "http://127.0.0.1:8000";
+// 0.96 measured 16.9 chars/sec; 0.92 gives 16.3, a less hurried delivery for
+// about 4 percent more audio. Rate is the main measurable correlate of
+// sounding robotic, so it is set here rather than left to the model default.
+const KOKORO_SPEED = Number(process.env.KOKORO_SPEED || 0.92);
+
 const KOKORO_VOICES: Record<string, string> = {
+  // Cira default. All 13 candidates measured identically intelligible
+  // (9.4% WER, entirely the brand names), so the pick rests on pacing.
+  cira: "af_bella",
   sonia: "bf_emma",
   ryan: "bm_george",
   libby: "bf_lily",
@@ -147,9 +159,15 @@ export async function POST(request: NextRequest) {
     }
 
     const trimmed = text.trim().substring(0, 1000);
-    const selectedVoiceId = typeof voiceId === "string" ? voiceId : "jenny";
+    const selectedVoiceId = typeof voiceId === "string" ? voiceId : "cira";
     const textLang = typeof lang === "string" && /^[a-z]{2}$/.test(lang) ? lang : detectLang(trimmed);
-    const kokoroVoice = KOKORO_VOICES[selectedVoiceId] || "af_heart";
+    // The model ships 54 voices but only the aliases below were reachable.
+    // A raw id (e.g. "af_nicole", "bm_fable") now passes straight through, so the
+    // dashboard can offer the full set without another deploy.
+    const isRawKokoroId = /^[abefhijpz][fm]_[a-z]+$/.test(selectedVoiceId);
+    const kokoroVoice = isRawKokoroId
+      ? selectedVoiceId
+      : KOKORO_VOICES[selectedVoiceId] || "af_bella";
     const edgeVoice = textLang !== "en" && EDGE_LANG_VOICES[textLang]
       ? EDGE_LANG_VOICES[textLang]
       : (VOICES[selectedVoiceId] || VOICES["jenny"]);
@@ -158,6 +176,31 @@ export async function POST(request: NextRequest) {
     // non-English text straight to Edge TTS so European languages are
     // spoken natively instead of with mangled English sounds.
     if (textLang === "en") {
+      try {
+        const res = await fetch(`${KOKORO_SERVICE}/tts`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: trimmed, voice: kokoroVoice, speed: KOKORO_SPEED }),
+          signal: AbortSignal.timeout(30000),
+        });
+        if (res.ok) {
+          const audio = await res.arrayBuffer();
+          return new NextResponse(audio, {
+            headers: {
+              "Content-Type": "audio/wav",
+              "Cache-Control": "public, max-age=3600",
+              "Access-Control-Allow-Origin": "*",
+              "X-Cira-Voice-Engine": "kokoro-resident",
+              "X-Cira-Voice": kokoroVoice,
+            },
+          });
+        }
+        console.warn(`Kokoro service HTTP ${res.status}; falling back to spawn`);
+      } catch (error: any) {
+        // Service restarting or not running -- the spawn path still works, just slower.
+        console.warn("Kokoro service unreachable; falling back to spawn:", error?.message || error);
+      }
+
       try {
         const kokoroPython = path.join(process.cwd(), "kokoro-env", "bin", "python3");
         const kokoroScript = path.join(process.cwd(), "scripts", "kokoro_tts.py");
